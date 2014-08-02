@@ -76,11 +76,7 @@ void ui::classes::MainWindow::Render() {
     FS.Scale = 3.0f;
     FS.Offset.x = 1.0f;
 
-    FS.Gradient = {
-        GradientNode(0.0f, Color(255, 255, 255, 0)),
-        GradientNode(0.75f, Color(255, 255, 0, 0)),
-        GradientNode(1.0f, Color(255, 255, 255, 255))
-    };
+    FS.Gradient = gradientFractal->getGradient();
 
     render::render(FS);
 }

@@ -20,10 +20,12 @@ public:
     QSize sizeHint() const;
     void mousePressEvent(QMouseEvent*);
     void mouseReleaseEvent(QMouseEvent*);
+    void mouseMoveEvent(QMouseEvent*);
     //New Methods
     void setGradient(const MultiGradient&);
     MultiGradient getGradient() const;
 private:
+    bool selectedPressed = false;
     QImage gradmap;
     void updateGradientImage(const QRect&);
     MultiGradient gradient;

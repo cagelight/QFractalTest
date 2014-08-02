@@ -52,20 +52,32 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
     if (locPos.y() > 2 * (handleDiameter + 1)) {
         selectedHandle = nullptr;
     } else {
+        bool fflag = false;
         for (QGradientSliderHandle& h : handles) {
             int handleHPos = (h.Node->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
             if (locPos.x() < handleHPos + handleDiameter && locPos.x() > handleHPos - handleDiameter) {
                 selectedHandle = &h;
+                fflag = true;
                 break;
             }
         }
+        if (!fflag) selectedHandle = nullptr;
     }
     this->repaint();
+    selectedPressed = (selectedHandle != nullptr);
     QWidget::mousePressEvent(QME);
 }
 
 void QGradientSlider::mouseReleaseEvent(QMouseEvent* QME) {
+    selectedPressed = false;
+}
 
+void QGradientSlider::mouseMoveEvent(QMouseEvent* QME) {
+    if (selectedPressed) {
+        float newPos = std::min(std::max(((float)QME->localPos().x() / this->width()) * (gradmm.max - gradmm.min) + gradmm.min, gradmm.min), gradmm.max);
+        gradient.Set(selectedHandle->Node, newPos);
+        this->repaint();
+    }
 }
 
 void QGradientSlider::setGradient(const MultiGradient& MG) {
