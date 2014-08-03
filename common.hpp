@@ -45,7 +45,7 @@ public:
     template <int LEN> std::array<Color, LEN> Bake() const;
     Color* Bake(int) const;
     Color* Bake(float, float, int, int = 0) const;
-    const std::vector<GradientNode*> GetVector() const {return t;}
+    const std::vector<GradientNode*>& GetVector() const {return t;}
     //Copy and Assignment
     MultiGradient (const MultiGradient& other);
     MultiGradient& operator=(const MultiGradient& other);

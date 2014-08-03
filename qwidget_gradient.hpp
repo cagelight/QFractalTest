@@ -30,8 +30,7 @@ private:
     void updateGradientImage(const QRect&);
     MultiGradient gradient;
     Range gradmm;
-    std::vector<QGradientSliderHandle> handles;
-    QGradientSliderHandle* selectedHandle;
+    const GradientNode* selectedNode;
 };
 
 #endif // QWIDGET_GRADIENT_HPP

@@ -13,10 +13,7 @@ QGradientSlider::QGradientSlider(QWidget *parent) :
     gradmm(gradient.GetRange())
 {
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    for (const GradientNode* v : gradient.GetVector()) {
-        handles.push_back(v);
-    }
-    selectedHandle = nullptr;
+    selectedNode = nullptr;
 }
 
 void QGradientSlider::paintEvent(QPaintEvent* QPE) {
@@ -26,10 +23,10 @@ void QGradientSlider::paintEvent(QPaintEvent* QPE) {
     painter.setPen(Qt::NoPen);
     QBrush brushBlack(QColor(0, 0, 0), Qt::SolidPattern);
     painter.drawImage(gradientRect, gradmap);
-    for (QGradientSliderHandle& v : handles) {
-        int hpos = (v.Node->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
-        if (&v == selectedHandle) {
-            Color C = selectedHandle->Node->second;
+    for (const GradientNode* v : gradient.GetVector()) {
+        int hpos = (v->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
+        if (v == selectedNode) {
+            Color C = selectedNode->second;
             painter.setBrush(QBrush(QColor(255-C.R, 255-C.G, 255-C.B), Qt::SolidPattern));
             painter.drawRect(hpos-handleDiameter-1, -1, (handleDiameter + 1) * 2, (handleDiameter + 1) * 2);
             painter.drawRect(hpos-1, handleDiameter+2, 2, QPE->rect().height() - (2 * handleDiameter) - 2);
@@ -50,21 +47,26 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
     QPoint locPos = QPoint((int)QME->localPos().x(), (int)QME->localPos().y());
     //QPointF gradPos = QPointF((locPos.x() / this->width() * (gradmm.max - gradmm.min)) + gradmm.min, locPos.y());
     if (locPos.y() > 2 * (handleDiameter + 1)) {
-        selectedHandle = nullptr;
+        selectedNode = nullptr;
     } else {
         bool fflag = false;
-        for (QGradientSliderHandle& h : handles) {
-            int handleHPos = (h.Node->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
+        for (const GradientNode* h : gradient.GetVector()) {
+            int handleHPos = (h->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
             if (locPos.x() < handleHPos + handleDiameter && locPos.x() > handleHPos - handleDiameter) {
-                selectedHandle = &h;
+                selectedNode = h;
                 fflag = true;
                 break;
             }
         }
-        if (!fflag) selectedHandle = nullptr;
+        if (!fflag) {
+            float newPos = std::min(std::max(((float)QME->localPos().x() / this->width()) * (gradmm.max - gradmm.min) + gradmm.min, gradmm.min), gradmm.max);
+            Color newColor = gradient.Lerp(newPos);
+            const GradientNode* N = gradient.Add(newPos, newColor);
+            selectedNode = N;
+        }
     }
     this->repaint();
-    selectedPressed = (selectedHandle != nullptr);
+    selectedPressed = (selectedNode != nullptr);
     QWidget::mousePressEvent(QME);
 }
 
@@ -75,7 +77,7 @@ void QGradientSlider::mouseReleaseEvent(QMouseEvent* QME) {
 void QGradientSlider::mouseMoveEvent(QMouseEvent* QME) {
     if (selectedPressed) {
         float newPos = std::min(std::max(((float)QME->localPos().x() / this->width()) * (gradmm.max - gradmm.min) + gradmm.min, gradmm.min), gradmm.max);
-        gradient.Set(selectedHandle->Node, newPos);
+        gradient.Set(selectedNode, newPos);
         this->repaint();
     }
 }
