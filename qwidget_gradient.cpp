@@ -13,7 +13,7 @@ QGradientSlider::QGradientSlider(QWidget *parent) :
     gradmm(gradient.GetRange())
 {
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    selectedNode = nullptr;
+    this->UnsetSelectedNode();
 }
 
 void QGradientSlider::paintEvent(QPaintEvent* QPE) {
@@ -47,16 +47,16 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
     QPoint locPos = QPoint((int)QME->localPos().x(), (int)QME->localPos().y());
     //QPointF gradPos = QPointF((locPos.x() / this->width() * (gradmm.max - gradmm.min)) + gradmm.min, locPos.y());
     if (locPos.y() > 2 * (handleDiameter + 1)) {
-        selectedNode = nullptr;
+        this->UnsetSelectedNode();
     } else {
         bool fflag = false;
         for (const GradientNode* h : gradient.GetVector()) {
             int handleHPos = (h->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
             if (locPos.x() < handleHPos + handleDiameter && locPos.x() > handleHPos - handleDiameter) {
                 if (QME->button() == Qt::LeftButton) {
-                    selectedNode = h;
+                    this->SetSelectedNode(h);
                 } else if (QME->button() == Qt::RightButton) {
-                    if (selectedNode == h) selectedNode = nullptr;
+                    if (selectedNode == h) this->UnsetSelectedNode();
                     gradient.Remove(h);
                 }
                 fflag = true;
@@ -67,7 +67,7 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
             float newPos = std::min(std::max(((float)QME->localPos().x() / this->width()) * (gradmm.max - gradmm.min) + gradmm.min, gradmm.min), gradmm.max);
             Color newColor = gradient.Lerp(newPos);
             const GradientNode* N = gradient.Add(newPos, newColor);
-            selectedNode = N;
+            this->SetSelectedNode(N);
         }
     }
     this->repaint();
@@ -83,6 +83,7 @@ void QGradientSlider::mouseMoveEvent(QMouseEvent* QME) {
     if (selectedPressed) {
         float newPos = std::min(std::max(((float)QME->localPos().x() / this->width()) * (gradmm.max - gradmm.min) + gradmm.min, gradmm.min), gradmm.max);
         gradient.Set(selectedNode, newPos);
+        this->UpdatePositionSignal();
         this->repaint();
     }
 }
@@ -102,6 +103,24 @@ MultiGradient QGradientSlider::getGradient() const {
     return MG;
 }
 
+void QGradientSlider::SetSelectedNode(const GradientNode* ptr) {
+    selectedNode = ptr;
+    this->UpdatePositionSignal();
+}
+
+void QGradientSlider::UnsetSelectedNode() {
+    selectedNode = nullptr;
+    this->UpdatePositionSignal();
+}
+
+void QGradientSlider::UpdatePositionSignal() {
+    if (selectedNode != nullptr) {
+        emit SelectedPositionChanged(QString::number(selectedNode->first));
+    } else {
+        emit SelectedPositionChanged("");
+    }
+}
+
 void QGradientSlider::updateGradientImage(const QRect& rect) {
     this->gradmap = QImage(rect.size(), QImage::Format_ARGB32);
     Color* horizmap = this->gradient.Bake(gradmm.min, gradmm.max, gradmap.width(), handleDiameter);
@@ -112,4 +131,18 @@ void QGradientSlider::updateGradientImage(const QRect& rect) {
         }
     }
     delete[] horizmap;
+}
+
+bool QGradientSlider::SetSelectedColor(QColor newColorQ) {
+    if (selectedNode != nullptr) {
+        gradient.Set(selectedNode, Color(newColorQ.rgba()));
+        return true;
+    } else return false;
+}
+
+bool QGradientSlider::SetSelectedPosition(QString newPosStr) {
+    if (selectedNode != nullptr) {
+        gradient.Set(selectedNode, newPosStr.toFloat());
+        return true;
+    } else return false;
 }

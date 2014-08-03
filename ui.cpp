@@ -19,6 +19,7 @@ static ui::classes::MainWindow* windowMain;
 static QGridLayout* layoutMain;
 static QPushButton* buttonRender;
 static QGradientSlider* gradientFractal;
+static QLineEdit* gradientPosLine;
 //RenderWindow
 static bool fitView = false;
 static ui::classes::RenderWindow* windowRender;
@@ -109,6 +110,10 @@ static void InitializeMainWindow() {
     layoutMain->addWidget(buttonRender);
     gradientFractal = new QGradientSlider(windowMain);
     layoutMain->addWidget(gradientFractal);
+    gradientPosLine = new QLineEdit(windowMain);
+    gradientPosLine->setValidator(new QDoubleValidator(windowMain));
+    QObject::connect(gradientFractal, SIGNAL(SelectedPositionChanged(QString)), gradientPosLine, SLOT(setText(QString)));
+    layoutMain->addWidget(gradientPosLine);
     windowMain->setLayout(layoutMain);
     windowMain->show();
 }

@@ -31,6 +31,14 @@ private:
     MultiGradient gradient;
     Range gradmm;
     const GradientNode* selectedNode;
+    void SetSelectedNode(const GradientNode*);
+    void UnsetSelectedNode();
+    void UpdatePositionSignal();
+public slots:
+    bool SetSelectedColor(QColor newColorQ);
+    bool SetSelectedPosition(QString newPosStr);
+signals:
+    void SelectedPositionChanged(QString newPosStr);
 };
 
 #endif // QWIDGET_GRADIENT_HPP
