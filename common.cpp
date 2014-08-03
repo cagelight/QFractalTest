@@ -61,6 +61,17 @@ bool MultiGradient::Set(const GradientNode* ptr, float pos, Color C) {
     return false;
 }
 
+void MultiGradient::Remove(const GradientNode *ptr) {
+    for (std::vector<GradientNode*>::iterator i = t.begin(); i != t.end(); i++) {
+        if (ptr == *i) {
+            GradientNode* optr = *i;
+            t.erase(i);
+            delete optr;
+            return;
+        }
+    }
+}
+
 unsigned int MultiGradient::Nodes() const {
     return t.size();
 }
@@ -77,26 +88,30 @@ Range MultiGradient::GetRange() const {
 }
 
 Color MultiGradient::Lerp(float pos) const {
-    std::vector<GradientNode*>::const_iterator i = t.begin();
-    if (pos <= (*i)->first)
-        return (*i)->second;
-    while (++i != t.end()) {
-        if (pos <= (*i)->first) {
-            GradientNode& Left = **(i-1);
-            GradientNode& Right = **i;
-            float dmax = Right.first - Left.first;
-            float delta = pos - Left.first;
-            float rpol = delta / dmax;
-            float lpol = 1.0f - rpol;
-            Color F;
-            F.A = (unsigned char)(Left.second.A * lpol + Right.second.A * rpol);
-            F.R = (unsigned char)(Left.second.R * lpol + Right.second.R * rpol);
-            F.G = (unsigned char)(Left.second.G * lpol + Right.second.G * rpol);
-            F.B = (unsigned char)(Left.second.B * lpol + Right.second.B * rpol);
-            return F;
+    if (this->Nodes() > 0) {
+        std::vector<GradientNode*>::const_iterator i = t.begin();
+        if (pos <= (*i)->first)
+            return (*i)->second;
+        while (++i != t.end()) {
+            if (pos <= (*i)->first) {
+                GradientNode& Left = **(i-1);
+                GradientNode& Right = **i;
+                float dmax = Right.first - Left.first;
+                float delta = pos - Left.first;
+                float rpol = delta / dmax;
+                float lpol = 1.0f - rpol;
+                Color F;
+                F.A = (unsigned char)(Left.second.A * lpol + Right.second.A * rpol);
+                F.R = (unsigned char)(Left.second.R * lpol + Right.second.R * rpol);
+                F.G = (unsigned char)(Left.second.G * lpol + Right.second.G * rpol);
+                F.B = (unsigned char)(Left.second.B * lpol + Right.second.B * rpol);
+                return F;
+            }
         }
+        return (*(i-1))->second;
+    } else {
+        return Color(255, 0, 0, 0);
     }
-    return (*(i-1))->second;
 }
 
 template <int LEN>

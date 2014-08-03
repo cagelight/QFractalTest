@@ -39,6 +39,7 @@ public:
     bool Set(const GradientNode* ptr, float pos);
     bool Set(const GradientNode* ptr, Color C);
     bool Set(const GradientNode* ptr, float pos, Color C);
+    void Remove(const GradientNode* ptr);
     unsigned int Nodes() const;
     Range GetRange() const;
     Color Lerp(float) const;

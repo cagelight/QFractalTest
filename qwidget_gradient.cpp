@@ -53,12 +53,17 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
         for (const GradientNode* h : gradient.GetVector()) {
             int handleHPos = (h->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
             if (locPos.x() < handleHPos + handleDiameter && locPos.x() > handleHPos - handleDiameter) {
-                selectedNode = h;
+                if (QME->button() == Qt::LeftButton) {
+                    selectedNode = h;
+                } else if (QME->button() == Qt::RightButton) {
+                    if (selectedNode == h) selectedNode = nullptr;
+                    gradient.Remove(h);
+                }
                 fflag = true;
                 break;
             }
         }
-        if (!fflag) {
+        if (!fflag && QME->button() == Qt::LeftButton) {
             float newPos = std::min(std::max(((float)QME->localPos().x() / this->width()) * (gradmm.max - gradmm.min) + gradmm.min, gradmm.min), gradmm.max);
             Color newColor = gradient.Lerp(newPos);
             const GradientNode* N = gradient.Add(newPos, newColor);
