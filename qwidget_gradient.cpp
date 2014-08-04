@@ -7,9 +7,8 @@ static const int handleDiameter = 4;
 QGradientSlider::QGradientSlider(QWidget *parent) :
     QWidget(parent),
     gradient{
-        GradientNode(0.0f, Color(255, 255, 255, 0)),
-        GradientNode(1.0f, Color(255, 255, 0, 0)),
-        GradientNode(2.0f, Color(255, 255, 255, 255))},
+        GradientNode(0.0f, Color(255, 255, 255, 255)),
+        GradientNode(1.0f, Color(255, 0, 0, 0))},
     gradmm(gradient.GetRange())
 {
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -25,17 +24,16 @@ void QGradientSlider::paintEvent(QPaintEvent* QPE) {
     painter.drawImage(gradientRect, gradmap);
     for (const GradientNode* v : gradient.GetVector()) {
         int hpos = (v->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
+        Color C = v->second;
         if (v == selectedNode) {
-            Color C = selectedNode->second;
             painter.setBrush(QBrush(QColor(255-C.R, 255-C.G, 255-C.B), Qt::SolidPattern));
             painter.drawRect(hpos-handleDiameter-1, -1, (handleDiameter + 1) * 2, (handleDiameter + 1) * 2);
             painter.drawRect(hpos-1, handleDiameter+2, 2, QPE->rect().height() - (2 * handleDiameter) - 2);
-            painter.setBrush(brushBlack);
-            painter.drawRect(hpos-handleDiameter, 0, handleDiameter * 2, handleDiameter * 2);
-        } else {
-            painter.setBrush(brushBlack);
-            painter.drawRect(hpos-handleDiameter, 0, handleDiameter * 2, handleDiameter * 2);
         }
+        painter.setBrush(brushBlack);
+        painter.drawRect(hpos-handleDiameter, 0, handleDiameter * 2, handleDiameter * 2);
+        painter.setBrush(QBrush(QColor(C.R, C.G, C.B), Qt::SolidPattern));
+        painter.drawRect(hpos-handleDiameter+2, 2, (handleDiameter - 2) * 2, (handleDiameter - 2) * 2);
     }
 }
 
@@ -71,7 +69,7 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
         }
     }
     this->repaint();
-    selectedPressed = (selectedNode != nullptr);
+    selectedPressed = (selectedNode != nullptr && QME->button() == Qt::LeftButton);
     QWidget::mousePressEvent(QME);
 }
 
@@ -85,6 +83,12 @@ void QGradientSlider::mouseMoveEvent(QMouseEvent* QME) {
         gradient.Set(selectedNode, newPos);
         this->UpdatePositionSignal();
         this->repaint();
+    }
+}
+
+void QGradientSlider::mouseDoubleClickEvent(QMouseEvent* QME) {
+    if (selectedNode != nullptr && QME->button() == Qt::LeftButton) {
+        emit HandleDoubleClicked();
     }
 }
 
@@ -135,14 +139,23 @@ void QGradientSlider::updateGradientImage(const QRect& rect) {
 
 bool QGradientSlider::SetSelectedColor(QColor newColorQ) {
     if (selectedNode != nullptr) {
-        gradient.Set(selectedNode, Color(newColorQ.rgba()));
+        unsigned int rgba = newColorQ.rgba();
+        unsigned char* argb = (unsigned char*)&rgba;
+        gradient.Set(selectedNode, Color(argb[3], argb[2], argb[1], argb[0]));
+        this->repaint();
         return true;
     } else return false;
 }
 
 bool QGradientSlider::SetSelectedPosition(QString newPosStr) {
     if (selectedNode != nullptr) {
-        gradient.Set(selectedNode, newPosStr.toFloat());
-        return true;
-    } else return false;
+        bool ok = false;
+        float f = newPosStr.toFloat(&ok);
+        if (ok) {
+            f = std::min(std::max(gradmm.min, f), gradmm.max);
+            gradient.Set(selectedNode, f);
+            this->repaint();
+            return true;
+        }
+    } return false;
 }

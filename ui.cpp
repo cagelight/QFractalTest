@@ -20,6 +20,7 @@ static QGridLayout* layoutMain;
 static QPushButton* buttonRender;
 static QGradientSlider* gradientFractal;
 static QLineEdit* gradientPosLine;
+static QColorDialog* dialogGradientColor;
 //RenderWindow
 static bool fitView = false;
 static ui::classes::RenderWindow* windowRender;
@@ -71,11 +72,11 @@ void ui::classes::MainWindow::closeEvent(QCloseEvent* QCE) {
 }
 void ui::classes::MainWindow::Render() {
     fractal::Settings FS;
-    FS.Width = 1024;
-    FS.Height = 1024;
-    FS.Iterations = 50;
-    FS.Scale = 3.0f;
-    FS.Offset.x = 1.0f;
+    FS.Width = 4096;
+    FS.Height = 4096;
+    FS.Iterations = 80;
+    FS.Scale = 0.125f;
+    FS.Offset.x = 1.5f;
 
     FS.Gradient = gradientFractal->getGradient();
 
@@ -113,7 +114,11 @@ static void InitializeMainWindow() {
     gradientPosLine = new QLineEdit(windowMain);
     gradientPosLine->setValidator(new QDoubleValidator(windowMain));
     QObject::connect(gradientFractal, SIGNAL(SelectedPositionChanged(QString)), gradientPosLine, SLOT(setText(QString)));
+    QObject::connect(gradientPosLine, SIGNAL(textEdited(QString)), gradientFractal, SLOT(SetSelectedPosition(QString)));
     layoutMain->addWidget(gradientPosLine);
+    dialogGradientColor = new QColorDialog();
+    QObject::connect(gradientFractal, SIGNAL(HandleDoubleClicked()), dialogGradientColor, SLOT(open()));
+    QObject::connect(dialogGradientColor, SIGNAL(colorSelected(QColor)), gradientFractal, SLOT(SetSelectedColor(QColor)));
     windowMain->setLayout(layoutMain);
     windowMain->show();
 }

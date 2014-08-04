@@ -110,7 +110,7 @@ Color MultiGradient::Lerp(float pos) const {
         }
         return (*(i-1))->second;
     } else {
-        return Color(255, 0, 0, 0);
+        return Color(255, 255, 0, 0);
     }
 }
 

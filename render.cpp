@@ -37,6 +37,9 @@ void render::render(fractal::Settings settings) {
     pointerLock.unlock();
     glm::vec2 coords;
     glm::vec2 pre, post;
+
+    Color* iterbake = settings.Gradient.Bake(settings.Iterations);
+
     for (int r = 0; r < renderImage->height(); r++) {
         coords.y = (r / (float)renderImage->height() - 0.5) * settings.Scale - settings.Offset.y;
         unsigned int* rowPtr = (uint*)renderImage->scanLine(r);
@@ -53,9 +56,9 @@ void render::render(fractal::Settings settings) {
                 post.y = pre.y;
             }
             Range MM = settings.Gradient.GetRange();
-            float interpol = ((iter / (float)settings.Iterations) * MM.max) - MM.min;
-            rowPtr[c] = settings.Gradient.Lerp(interpol);
+            rowPtr[c] = iterbake[iter-1];
         }
     }
+    delete[] iterbake;
     ui::update_render_view();
 }

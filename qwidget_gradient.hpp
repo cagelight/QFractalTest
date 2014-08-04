@@ -21,6 +21,7 @@ public:
     void mousePressEvent(QMouseEvent*);
     void mouseReleaseEvent(QMouseEvent*);
     void mouseMoveEvent(QMouseEvent*);
+    void mouseDoubleClickEvent(QMouseEvent*);
     //New Methods
     void setGradient(const MultiGradient&);
     MultiGradient getGradient() const;
@@ -39,6 +40,7 @@ public slots:
     bool SetSelectedPosition(QString newPosStr);
 signals:
     void SelectedPositionChanged(QString newPosStr);
+    void HandleDoubleClicked();
 };
 
 #endif // QWIDGET_GRADIENT_HPP
