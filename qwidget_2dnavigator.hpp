@@ -11,7 +11,7 @@ public:
     Q2DNavigator(QWidget *parent = 0);
 private:
     QGridLayout* layout;
-    QPushButton *buttonUp, *buttonDown, *buttonLeft, *buttonRight;
+    QPushButton *buttonUp, *buttonDown, *buttonLeft, *buttonRight, *buttonCenter;
 };
 
 #endif // QWIDGET_2DNAVIGATOR_HPP

@@ -20,8 +20,9 @@ SOURCES += main.cpp \
     fractal.cpp \
     qwidget_gradient.cpp \
     common.cpp \
-    ui_internal.cpp \
-    qwidget_2dnavigator.cpp
+    qwidget_2dnavigator.cpp \
+    ui_main.cpp \
+    ui_render.cpp
 
 HEADERS  += \
     executive.hpp \
@@ -31,5 +32,6 @@ HEADERS  += \
     debug.hpp \
     qwidget_gradient.hpp \
     common.hpp \
-    ui_internal.hpp \
-    qwidget_2dnavigator.hpp
+    qwidget_2dnavigator.hpp \
+    ui_main.hpp \
+    ui_render.hpp
