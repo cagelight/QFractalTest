@@ -1,7 +1,10 @@
 #include "ui.hpp"
+#include "ui_internal.hpp"
 #include "debug.hpp"
 #include "render.hpp"
+
 #include "qwidget_gradient.hpp"
+#include "qwidget_2dnavigator.hpp"
 
 #include <QApplication>
 #include <QtWidgets>
@@ -21,6 +24,7 @@ static QPushButton* buttonRender;
 static QGradientSlider* gradientFractal;
 static QLineEdit* gradientPosLine;
 static QColorDialog* dialogGradientColor;
+static Q2DNavigator* navFract;
 //RenderWindow
 static bool fitView = false;
 static ui::classes::RenderWindow* windowRender;
@@ -72,9 +76,9 @@ void ui::classes::MainWindow::closeEvent(QCloseEvent* QCE) {
 }
 void ui::classes::MainWindow::Render() {
     fractal::Settings FS;
-    FS.Width = 4096;
-    FS.Height = 4096;
-    FS.Iterations = 80;
+    FS.Width = 1024;
+    FS.Height = 1024;
+    FS.Iterations = 60;
     FS.Scale = 0.125f;
     FS.Offset.x = 1.5f;
 
@@ -108,7 +112,7 @@ static void InitializeMainWindow() {
     layoutMain = new QGridLayout(windowMain);
     buttonRender = new QPushButton("Render", windowMain);
     QObject::connect(buttonRender, SIGNAL(pressed()), windowMain, SLOT(Render()));
-    layoutMain->addWidget(buttonRender);
+    layoutMain->addWidget(buttonRender, 0, 0);
     gradientFractal = new QGradientSlider(windowMain);
     layoutMain->addWidget(gradientFractal);
     gradientPosLine = new QLineEdit(windowMain);
@@ -119,6 +123,8 @@ static void InitializeMainWindow() {
     dialogGradientColor = new QColorDialog();
     QObject::connect(gradientFractal, SIGNAL(HandleDoubleClicked()), dialogGradientColor, SLOT(open()));
     QObject::connect(dialogGradientColor, SIGNAL(colorSelected(QColor)), gradientFractal, SLOT(SetSelectedColor(QColor)));
+    navFract = new Q2DNavigator(windowMain);
+    layoutMain->addWidget(navFract, 0, 1);
     windowMain->setLayout(layoutMain);
     windowMain->show();
 }
