@@ -1,8 +1,6 @@
 #ifndef UI_HPP
 #define UI_HPP
 
-#include "render.hpp"
-
 namespace ui {
     void initialize(int, char*[]);
     int execute();
