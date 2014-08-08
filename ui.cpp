@@ -4,6 +4,7 @@
 
 #include "ui_main.hpp"
 #include "ui_render.hpp"
+#include "ui_delegator.hpp"
 
 #include <QApplication>
 #include <QtWidgets>
@@ -16,6 +17,7 @@ static void InitializeRenderWindow();
 
 ///Static Variables///
 static QApplication* App;
+static FractUIDelegator* qtDelegator;
 static FractUIMain* windowMain;
 static FractUIRender* windowRender;
 ///::ui///
@@ -23,6 +25,9 @@ void ui::initialize(int argc, char* argv[]) {
     App = new QApplication(argc, argv);
     InitializeMainWindow();
     InitializeRenderWindow();
+    qtDelegator = new FractUIDelegator();
+    QObject::connect(qtDelegator, SIGNAL(UpdateRenderView()), windowRender, SLOT(UpdateView()), Qt::QueuedConnection);
+    QObject::connect(qtDelegator, SIGNAL(UpdateProgressBar()), windowMain, SLOT(UpdateProgress()), Qt::QueuedConnection);
 }
 
 int ui::execute() {
@@ -35,11 +40,16 @@ void ui::close() {
 }
 
 void ui::terminate() {
-    //ui::close();
+    render::terminate();
+    delete App;
 }
 
 void ui::update_render_view() {
-    windowRender->ReRender();
+    emit qtDelegator->UpdateRenderView();
+}
+
+void ui::update_render_progress() {
+    emit qtDelegator->UpdateProgressBar();
 }
 
 ///Static Definitions///

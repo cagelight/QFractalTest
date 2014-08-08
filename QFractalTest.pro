@@ -34,4 +34,5 @@ HEADERS  += \
     common.hpp \
     qwidget_2dnavigator.hpp \
     ui_main.hpp \
-    ui_render.hpp
+    ui_render.hpp \
+    ui_delegator.hpp

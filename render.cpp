@@ -2,19 +2,41 @@
 #include "ui.hpp"
 #include "debug.hpp"
 
+#include <chrono>
 #include <ctgmath>
+#include <functional>
 #include <mutex>
+#include <thread>
 
 #include <glm/glm.hpp>
 
 static QImage* renderImage;
 static std::mutex pointerLock;
+static std::mutex writeLock;
+static std::mutex progressLock;
+
+///THREADED RENDER BLOCK/// BEGIN
+
+static bool renderThreadGreenlight;
+static std::thread* renderThread;
+static RenderProgress progress;
+static std::chrono::high_resolution_clock::time_point renderStart;
+typedef std::chrono::duration<int, std::ratio<1, 100>> update_progress_interval;
+typedef std::chrono::duration<int, std::ratio<1, 10>> update_image_interval;
+static update_progress_interval lastProgressUpdate;
+static update_image_interval lastImageUpdate;
 
 static void render_image(fractal::Settings settings, QImage* img) {
+    renderStart = std::chrono::high_resolution_clock::now();
+    lastProgressUpdate = update_progress_interval::zero();
+    lastImageUpdate = update_image_interval::zero();
+    progress.setMax((unsigned long)img->width() * img->height());
+    progress.reset();
     glm::vec2 coords;
     glm::vec2 pre, post;
     Color* iterbake = settings.Gradient.Bake(settings.Iterations);
     for (int r = 0; r < img->height(); r++) {
+        if (!renderThreadGreenlight) break;
         coords.y = (r / (float)img->height() - 0.5) * settings.Scale - settings.Offset.y;
         unsigned int* rowPtr = (uint*)img->scanLine(r);
         for (int c = 0; c < img->width(); c++) {
@@ -31,9 +53,46 @@ static void render_image(fractal::Settings settings, QImage* img) {
             }
             rowPtr[c] = iterbake[iter-1];
         }
+        progressLock.lock();
+        progress.update(img->width());
+        progressLock.unlock();
+        update_progress_interval newProgressUpdate = std::chrono::duration_cast<update_progress_interval>(std::chrono::high_resolution_clock::now() - renderStart);
+        if (lastProgressUpdate.count() < newProgressUpdate.count() || progress.totalProgress() == 1.0f) {ui::update_render_progress();}
+        lastProgressUpdate = newProgressUpdate;
+        update_image_interval newImageUpdate = std::chrono::duration_cast<update_image_interval>(std::chrono::high_resolution_clock::now() - renderStart);
+        if (lastImageUpdate.count() < newImageUpdate.count() || progress.totalProgress() == 1.0f) {ui::update_render_view();}
+        lastImageUpdate = newImageUpdate;
     }
     delete[] iterbake;
+    renderThreadGreenlight = false;
+    ui::update_render_progress();
+    ui::update_render_view();
 }
+
+static void begin_threaded_render(fractal::Settings s) {
+    writeLock.lock();
+    pointerLock.lock();
+    delete renderImage;
+    renderImage = new QImage(s.Width, s.Height, QImage::Format_RGB32);
+    renderImage->fill(0x00000000);
+    pointerLock.unlock();
+    render_image(s, renderImage);
+    ui::update_render_view();
+    writeLock.unlock();
+}
+
+static void begin_render(fractal::Settings s) {
+    if (renderThread != nullptr && renderThread->joinable()) {
+        renderThreadGreenlight = false;
+        renderThread->join();
+        delete renderThread;
+    } else if (renderThread != nullptr) {
+        delete renderThread;
+    }
+    renderThreadGreenlight = true;
+    renderThread = new std::thread(std::bind(begin_threaded_render, s));
+}
+///THREADED RENDER BLOCK/// END
 
 void render::initialize() {
     renderImage = new QImage(1, 1, QImage::Format_RGB32);
@@ -64,10 +123,21 @@ QImage render::render_preview(fractal::Settings settings) {
 }
 
 void render::render(fractal::Settings settings) {
-    pointerLock.lock();
+    begin_render(settings);
+}
+
+RenderProgress render::get_progress() {
+    progressLock.lock();
+    auto RP = progress;
+    progressLock.unlock();
+    return RP;
+}
+
+void render::terminate() {
+    if (renderThread != nullptr && renderThread->joinable()) {
+        renderThreadGreenlight = false;
+        renderThread->join();
+    }
     delete renderImage;
-    renderImage = new QImage(settings.Width, settings.Height, QImage::Format_RGB32);
-    pointerLock.unlock();
-    render_image(settings, renderImage);
-    ui::update_render_view();
+    delete renderThread;
 }

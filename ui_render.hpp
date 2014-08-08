@@ -11,7 +11,7 @@ public:
     void closeEvent(QCloseEvent*);
     void resizeEvent(QResizeEvent*);
 public slots:
-    void ReRender();
+    void UpdateView();
 private:
     //vars
     QGridLayout *layoutOverworld = new QGridLayout(this);

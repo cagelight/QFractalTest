@@ -6,7 +6,7 @@ FractUIRender::FractUIRender() : QWidget() {
     areaRender->setAlignment(Qt::AlignCenter);
     areaRender->setWidget(labelRenderView);
     cbFit->setText("Fit");
-    QObject::connect(cbFit, SIGNAL(stateChanged(int)), this, SLOT(ReRender()));
+    QObject::connect(cbFit, SIGNAL(stateChanged(int)), this, SLOT(UpdateView()));
     labelRenderView->setMinimumSize(1, 1);
     layoutOverworld->addWidget(areaRender);
     layoutOverworld->addWidget(cbFit);
@@ -26,7 +26,7 @@ void FractUIRender::resizeEvent(QResizeEvent* QRE) {
     }
     QWidget::resizeEvent(QRE);
 }
-void FractUIRender::ReRender() {
+void FractUIRender::UpdateView() {
     if (cbFit->checkState() == Qt::Checked) {
         QSize S = areaRender->viewport()->rect().size();
         labelRenderView->setPixmap(QPixmap::fromImage(render::get_scaled_copy(S.width(), S.height())));
