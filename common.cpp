@@ -131,7 +131,7 @@ Color* MultiGradient::Bake(int len) const {
     Range MM = GetRange();
     float delta = MM.max - MM.min;
     for (int i = 0; i < len; i++) {
-        float f = (i / (float)len) * delta + MM.min;
+        float f = (i / (float)(len-1)) * delta + MM.min;
         arry[i] = this->Lerp(f);
     }
     return arry;
@@ -142,7 +142,7 @@ Color* MultiGradient::Bake(float min, float max, int len, int overhead) const {
     float delta = max - min;
     for (int i = -overhead; i < len-overhead; i++) {
         int ia = i + overhead;
-        float f = (i / (float)(len-(2*overhead))) * delta + min;
+        float f = (i / (float)(len-1-(2*overhead))) * delta + min;
         arry[ia] = this->Lerp(f);
     }
     return arry;

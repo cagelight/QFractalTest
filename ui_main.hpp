@@ -17,15 +17,20 @@ public:
     void closeEvent(QCloseEvent*);
 public slots:
     void BeginRender();
+    void StopRender();
     void UpdateProgress();
 private:
+    //Overworld
     QGridLayout *layoutOverworld = new QGridLayout(this);
     Q2DNavigator *navigatorFractal = new Q2DNavigator(this);
     QColorDialog *colorDialogGradient = new QColorDialog(this);
     QGradientSlider *gradientSliderFractal = new QGradientSlider(this);
     QLineEdit *lineEditGradientPosition = new QLineEdit(this);
-    QProgressBar* renderProgress = new QProgressBar(this);
-    QPushButton *pushButtonRender = new QPushButton(this);
+    //Renderbar
+    QGridLayout *layoutRenderbar = new QGridLayout(this);
+    QProgressBar *renderProgressBar = new QProgressBar(this);
+    QPushButton *startRender = new QPushButton(this);
+    QPushButton *stopRender = new QPushButton(this);
 };
 
 #endif // UI_MAIN_HPP

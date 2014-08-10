@@ -11,16 +11,22 @@ FractUIMain::FractUIMain() : QWidget() {
     QObject::connect(colorDialogGradient, SIGNAL(colorSelected(QColor)), gradientSliderFractal, SLOT(SetSelectedColor(QColor)));
     QObject::connect(gradientSliderFractal, SIGNAL(SelectedPositionChanged(QString)), lineEditGradientPosition, SLOT(setText(QString)));
     QObject::connect(lineEditGradientPosition, SIGNAL(textEdited(QString)), gradientSliderFractal, SLOT(SetSelectedPosition(QString)));
-    renderProgress->setMinimum(0);
-    renderProgress->setMaximum(render_progress_bar_max);
-    pushButtonRender->setText("Render");
-    QObject::connect(pushButtonRender, SIGNAL(pressed()), this, SLOT(BeginRender()));
+    renderProgressBar->setMinimum(0);
+    renderProgressBar->setMaximum(render_progress_bar_max);
+    startRender->setText("Render");
+    QObject::connect(startRender, SIGNAL(pressed()), this, SLOT(BeginRender()));
+    stopRender->setText("Stop");
+    QObject::connect(stopRender, SIGNAL(pressed()), this, SLOT(StopRender()));
     lineEditGradientPosition->setValidator(new QDoubleValidator(this));
     layoutOverworld->addWidget(navigatorFractal);
     layoutOverworld->addWidget(gradientSliderFractal);
     layoutOverworld->addWidget(lineEditGradientPosition);
-    layoutOverworld->addWidget(pushButtonRender);
-    layoutOverworld->addWidget(renderProgress);
+
+    layoutRenderbar->addWidget(startRender, 0, 0);
+    layoutRenderbar->addWidget(renderProgressBar, 0, 1);
+    layoutRenderbar->addWidget(stopRender, 0, 2);
+    layoutOverworld->addLayout(layoutRenderbar, 99, 0);
+
     this->setLayout(layoutOverworld);
 }
 QSize FractUIMain::sizeHint() const {
@@ -31,22 +37,26 @@ void FractUIMain::closeEvent(QCloseEvent* QCE) {
     ui::close();
 }
 void FractUIMain::BeginRender() {
-    fractal::Settings FS;
-    FS.Width = 2048;
-    FS.Height = 2048;
-    FS.Iterations = 60;
-    //FS.Scale = 0.125f;
-    //FS.Offset.x = 1.5f;
+    FractSettings FS;
+    FS.Width = 8192;
+    FS.Height = 8192;
+    FS.Iterations = 80;
+    FS.Scale = 0.125f;
+    FS.Offset.x = 1.5f;
 
     FS.Gradient = gradientSliderFractal->getGradient();
 
     render::render(FS);
 }
 
+void FractUIMain::StopRender() {
+    ::render::stop_render();
+}
+
 void FractUIMain::UpdateProgress() {
     RenderProgress RP = ::render::get_progress();
     float prog = RP.totalProgress();
-    renderProgress->setValue((int)(prog * render_progress_bar_max));
-    renderProgress->setTextVisible(true);
-    renderProgress->setFormat(QString::number(prog*100, 'f', 2) + QString("%"));
+    renderProgressBar->setValue((int)(prog * render_progress_bar_max));
+    renderProgressBar->setTextVisible(true);
+    renderProgressBar->setFormat(QString::number(prog*100, 'f', 2) + QString("%"));
 }

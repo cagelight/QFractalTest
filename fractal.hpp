@@ -5,17 +5,13 @@
 
 #include "common.hpp"
 
-namespace fractal {
-
-struct Settings {
+struct FractSettings {
     unsigned int Width = 512;
     unsigned int Height = 512;
     float Scale = 1.0f;
     glm::vec2 Offset = glm::vec2(0, 0);
-    unsigned int Iterations;
+    unsigned short Iterations;
     MultiGradient Gradient;
 };
-
-}
 
 #endif // SETTINGS_HPP
