@@ -22,7 +22,8 @@ SOURCES += main.cpp \
     common.cpp \
     qwidget_2dnavigator.cpp \
     ui_main.cpp \
-    ui_render.cpp
+    ui_render.cpp \
+    render_pixel.c
 
 HEADERS  += \
     executive.hpp \
@@ -35,4 +36,5 @@ HEADERS  += \
     qwidget_2dnavigator.hpp \
     ui_main.hpp \
     ui_render.hpp \
-    ui_delegator.hpp
+    ui_delegator.hpp \
+    render_pixel.h

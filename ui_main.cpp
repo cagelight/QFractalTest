@@ -40,9 +40,9 @@ void FractUIMain::BeginRender() {
     FractSettings FS;
     FS.Width = 8192;
     FS.Height = 8192;
-    FS.Iterations = 80;
-    FS.Scale = 0.125f;
-    FS.Offset.x = 1.5f;
+    FS.Iterations = 40;
+    FS.Scale = 4.0f;
+    FS.Offset.x = 0.5f;
 
     FS.Gradient = gradientSliderFractal->getGradient();
 

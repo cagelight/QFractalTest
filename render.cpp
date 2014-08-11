@@ -2,6 +2,10 @@
 #include "ui.hpp"
 #include "debug.hpp"
 
+extern "C" {
+    #include "render_pixel.h"
+}
+
 #include <chrono>
 #include <ctgmath>
 #include <functional>
@@ -57,25 +61,12 @@ static bool delegate_line(unsigned int &lineNum, unsigned int*& rowPtr) {
 
 }
 
-inline static unsigned int render_pixel(const FractSettings& s, const glm::vec2& coords) {
-    glm::vec2 pre = glm::vec2(0, 0);
-    glm::vec2 post = glm::vec2(0, 0);
-    unsigned int iter = 0;
-    for (;iter < s.Iterations; iter++) {
-        pre.x = (post.x * post.x - post.y * post.y) + coords.x;
-        pre.y = (post.y * post.x + post.x * post.y) + coords.y;
-        if ((pre.x * pre.x + pre.y * pre.y) > 1e5f) break;
-        post.x = pre.x;
-        post.y = pre.y;
-    }
-    return iter-1;
-}
-
 static void render_line(const FractSettings& s, float fhpos, unsigned int *rowPtr, const Color* colorbake) {
     glm::vec2 coords(0.0f, fhpos * s.Scale - s.Offset.y);
     for (unsigned int c = 0; c < s.Width; c++) {
         coords.x = (c / (float)s.Width - 0.5) * s.Scale - s.Offset.x;
-        rowPtr[c] = colorbake[render_pixel(s, coords)];
+        unsigned int rpix = render2d_mandelbrot_pixel(s.Iterations, coords.x, coords.y);
+        rowPtr[c] = colorbake[rpix];
     }
 }
 

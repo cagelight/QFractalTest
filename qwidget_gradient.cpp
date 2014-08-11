@@ -2,7 +2,7 @@
 
 #include <QtGui>
 
-static const int handleDiameter = 4;
+static const int handleDiameter = 5;
 
 QGradientSlider::QGradientSlider(QWidget *parent) :
     QWidget(parent),
@@ -11,7 +11,7 @@ QGradientSlider::QGradientSlider(QWidget *parent) :
         GradientNode(1.0f, Color(255, 0, 0, 0))},
     gradmm(gradient.GetRange())
 {
-    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     this->UnsetSelectedNode();
 }
 
