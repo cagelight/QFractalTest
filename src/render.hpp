@@ -3,7 +3,7 @@
 
 #include <QImage>
 
-#include "fractal.hpp"
+#include "fractal_meta.hpp"
 
 class RenderProgress {
 public:
@@ -63,11 +63,19 @@ private:
 };
 */
 
+extern "C" {
+    #include "render_pixel.h"
+}
+
+enum Render2D {
+    Mandelbrot = render2d_mandelbrot_pixel_tag
+};
+
 namespace render {
     void initialize();
     QImage get_scaled_copy(int, int);
     QImage get_image_copy();
-    void render(FractSettings);
+    void render(Fract);
     void stop_render();
     RenderProgress get_progress();
     void terminate();

@@ -1,9 +1,3 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2014-07-25T18:40:10
-#
-#-------------------------------------------------
-
 CONFIG += c++11
 CONFIG += Debug
 
@@ -15,23 +9,22 @@ TEMPLATE = app
 
 
 SOURCES += \
-	src/main.cpp \
+    src/main.cpp \
     src/executive.cpp \
     src/ui.cpp \
     src/render.cpp \
-    src/fractal.cpp \
     src/qwidget_gradient.cpp \
     src/common.cpp \
     src/qwidget_2dnavigator.cpp \
     src/ui_main.cpp \
     src/ui_render.cpp \
-    src/render_pixel.c
+    src/render_pixel.c \
+    src/multigradient.cpp
 
 HEADERS  += \
     src/executive.hpp \
     src/ui.hpp \
     src/render.hpp \
-    src/fractal.hpp \
     src/debug.hpp \
     src/qwidget_gradient.hpp \
     src/common.hpp \
@@ -39,7 +32,10 @@ HEADERS  += \
     src/ui_main.hpp \
     src/ui_render.hpp \
     src/ui_delegator.hpp \
-    src/render_pixel.h
+    src/render_pixel.h \ 
+    src/multigradient.hpp \
+    src/fractal_settings.h \
+    src/fractal_meta.hpp
 
 Release:DESTDIR = release
 Release:OBJECTS_DIR = release/.obj

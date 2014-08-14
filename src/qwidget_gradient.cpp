@@ -7,8 +7,8 @@ static const int handleDiameter = 5;
 QGradientSlider::QGradientSlider(QWidget *parent) :
     QWidget(parent),
     gradient{
-        GradientNode(0.0f, Color(255, 255, 255, 255)),
-        GradientNode(1.0f, Color(255, 0, 0, 0))},
+        GradientNode(0.0f, CColorWHITE),
+        GradientNode(1.0f, CColorBLACK)},
     gradmm(gradient.GetRange())
 {
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -24,7 +24,7 @@ void QGradientSlider::paintEvent(QPaintEvent* QPE) {
     painter.drawImage(gradientRect, gradmap);
     for (const GradientNode* v : gradient.GetVector()) {
         int hpos = (v->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
-        Color C = v->second;
+        CColor C = v->second;
         if (v == selectedNode) {
             painter.setBrush(QBrush(QColor(255-C.R, 255-C.G, 255-C.B), Qt::SolidPattern));
             painter.drawRect(hpos-handleDiameter-1, -1, (handleDiameter + 1) * 2, (handleDiameter + 1) * 2);
@@ -63,7 +63,7 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
         }
         if (!fflag && QME->button() == Qt::LeftButton) {
             float newPos = std::min(std::max(((float)QME->localPos().x() / this->width()) * (gradmm.max - gradmm.min) + gradmm.min, gradmm.min), gradmm.max);
-            Color newColor = gradient.Lerp(newPos);
+            CColor newColor = gradient.Lerp(newPos);
             const GradientNode* N = gradient.Add(newPos, newColor);
             this->SetSelectedNode(N);
         }
@@ -127,9 +127,9 @@ void QGradientSlider::UpdatePositionSignal() {
 
 void QGradientSlider::updateGradientImage(const QRect& rect) {
     this->gradmap = QImage(rect.size(), QImage::Format_ARGB32);
-    Color* horizmap = this->gradient.Bake(gradmm.min, gradmm.max, gradmap.width(), handleDiameter);
+    CColor* horizmap = this->gradient.Bake(gradmm.min, gradmm.max, gradmap.width(), handleDiameter);
     for (int row = 0; row < gradmap.height(); row++) {
-        uint* rowPtr = (uint*)gradmap.scanLine(row);
+        CColor* rowPtr = (CColor*)gradmap.scanLine(row);
         for (int col = 0; col < gradmap.width(); col++) {
             rowPtr[col] = horizmap[col];
         }
@@ -139,9 +139,12 @@ void QGradientSlider::updateGradientImage(const QRect& rect) {
 
 bool QGradientSlider::SetSelectedColor(QColor newColorQ) {
     if (selectedNode != nullptr) {
-        unsigned int rgba = newColorQ.rgba();
-        unsigned char* argb = (unsigned char*)&rgba;
-        gradient.Set(selectedNode, Color(argb[3], argb[2], argb[1], argb[0]));
+#ifdef LITTLE_ENDIAN_PRIORITY
+        CColor nC = {(unsigned char)newColorQ.blue(), (unsigned char)newColorQ.green(), (unsigned char)newColorQ.red(), (unsigned char)newColorQ.alpha()};
+#else
+        CColor nC = {(unsigned char)newColorQ.alpha(), (unsigned char)newColorQ.red(), (unsigned char)newColorQ.green(), (unsigned char)newColorQ.blue()};
+#endif
+        gradient.Set(selectedNode, nC);
         this->repaint();
         return true;
     } else return false;

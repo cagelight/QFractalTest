@@ -1,10 +1,7 @@
 #include "render.hpp"
 #include "ui.hpp"
 #include "debug.hpp"
-
-extern "C" {
-    #include "render_pixel.h"
-}
+#include "multigradient.hpp"
 
 #include <chrono>
 #include <ctgmath>
@@ -48,7 +45,7 @@ static bool delegate_line(unsigned int &lineNum, unsigned int*& rowPtr) {
     delegateLock.lock();
     if (rowCur != rowNum) {
         lineNum = rowCur;
-        rowPtr = (unsigned int*)renderImage->scanLine(rowCur);
+        rowPtr = (unsigned int*)(QRgb*)renderImage->scanLine(rowCur);
         rowCur++;
         delegateLock.unlock();
         return true;
@@ -61,21 +58,13 @@ static bool delegate_line(unsigned int &lineNum, unsigned int*& rowPtr) {
 
 }
 
-static void render_line(const FractSettings& s, float fhpos, unsigned int *rowPtr, const Color* colorbake) {
-    glm::vec2 coords(0.0f, fhpos * s.Scale - s.Offset.y);
-    for (unsigned int c = 0; c < s.Width; c++) {
-        coords.x = (c / (float)s.Width - 0.5) * s.Scale - s.Offset.x;
-        unsigned int rpix = render2d_mandelbrot_pixel(s.Iterations, coords.x, coords.y);
-        rowPtr[c] = colorbake[rpix];
-    }
-}
-
-static void render_image(FractSettings s, Color* iterbake) {
+static void render_image(FractSettings s, CColor* iterbake) {
     unsigned int rowNum;
     unsigned int* rowPtr;
     while (delegate_line(rowNum, rowPtr) && mainGreenlight) {
         float fheight = (rowNum / (float)s.Height - 0.5);
-        render_line(s, fheight, rowPtr, iterbake);
+        //render_line(s, fheight, rowPtr, iterbake);
+        render2d_line(s, fheight, (CColor*)rowPtr, iterbake);
         progressLock.lock();
         progress.update(s.Width);
         progressLock.unlock();
@@ -91,23 +80,23 @@ static void render_image(FractSettings s, Color* iterbake) {
     }
 }
 
-static void begin_threaded_render(FractSettings s) {
+static void begin_threaded_render(Fract s) {
     writeLock.lock();
     pointerLock.lock();
     delete renderImage;
-    renderImage = new QImage(s.Width, s.Height, QImage::Format_RGB32);
+    renderImage = new QImage(s.Settings.Width, s.Settings.Height, QImage::Format_RGB32);
     renderImage->fill(0x00000000);
     pointerLock.unlock();
     mainGreenlight = true;
-    setup_delegate(s.Height);
+    setup_delegate(s.Settings.Height);
     renderStart = std::chrono::high_resolution_clock::now();
     lastProgressUpdate = update_progress_interval::zero();
     lastImageUpdate = update_image_interval::zero();
-    progress.setMax((unsigned long)s.Width * s.Height);
+    progress.setMax((unsigned long)s.Settings.Width * s.Settings.Height);
     progress.reset();
-    Color* iterbake = s.Gradient.Bake(s.Iterations);
+    CColor* iterbake = (CColor*)(unsigned int*)s.Gradient.Bake(s.Settings.Iterations);
     for (unsigned int i = 0; i < numCores; i++) {
-        renderThreads.push(std::thread(std::bind(render_image, s, iterbake)));
+        renderThreads.push(std::thread(std::bind(render_image, s.Settings, iterbake)));
     }
     while (renderThreads.size() > 0) {
         std::thread &t = renderThreads.front();
@@ -134,7 +123,7 @@ static void stop_threaded_render() {
     }
 }
 
-static void begin_render(FractSettings s) {
+static void begin_render(Fract s) {
     stop_threaded_render();
     renderThread = new std::thread(std::bind(begin_threaded_render, s));
 }
@@ -144,6 +133,12 @@ void render::initialize() {
     numCores = std::thread::hardware_concurrency();
     if (numCores == 0) numCores = 1;
     renderImage = new QImage(1, 1, QImage::Format_RGB32);
+    renderImage->fill(0xFF000000);
+    volatile int et = 1;
+    if (*(char*)&et == 1)
+        little_endian = true;
+    else
+        little_endian = false;
 }
 
 QImage render::get_scaled_copy(int width, int height) {
@@ -160,8 +155,8 @@ QImage render::get_image_copy() {
     return Qi;
 }
 
-void render::render(FractSettings settings) {
-    begin_render(settings);
+void render::render(Fract f) {
+    begin_render(f);
 }
 
 void render::stop_render() {

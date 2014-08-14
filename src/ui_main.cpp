@@ -1,7 +1,8 @@
 #include "ui.hpp"
 #include "ui_main.hpp"
-#include "fractal.hpp"
+#include "fractal_meta.hpp"
 #include "common.hpp"
+#include "multigradient.hpp"
 #include "render.hpp"
 
 static const int render_progress_bar_max = 10000;
@@ -37,12 +38,13 @@ void FractUIMain::closeEvent(QCloseEvent* QCE) {
     ui::close();
 }
 void FractUIMain::BeginRender() {
-    FractSettings FS;
-    FS.Width = 8192;
-    FS.Height = 8192;
-    FS.Iterations = 40;
-    FS.Scale = 4.0f;
-    FS.Offset.x = 0.5f;
+    Fract FS;
+    FS.Settings.Width = 8192;
+    FS.Settings.Height = 8192;
+    FS.Settings.Iterations = 40;
+    FS.Settings.Scale = 4.0f;
+    FS.Settings.Offset.X = 0.5f;
+    FS.Settings.Offset.Y = 0.0f;
 
     FS.Gradient = gradientSliderFractal->getGradient();
 

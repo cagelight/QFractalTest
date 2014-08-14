@@ -2,6 +2,7 @@
 #define QWIDGET_GRADIENT_HPP
 
 #include "common.hpp"
+#include "multigradient.hpp"
 
 #include <QWidget>
 
