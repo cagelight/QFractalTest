@@ -62,3 +62,7 @@ void FractUIMain::UpdateProgress() {
     renderProgressBar->setTextVisible(true);
     renderProgressBar->setFormat(QString::number(prog*100, 'f', 2) + QString("%"));
 }
+
+void FractUIMain::SaveRender(const QString& path) {
+    ::render::save_render(path);
+}

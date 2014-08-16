@@ -1,6 +1,7 @@
 #ifndef RENDER_HPP
 #define RENDER_HPP
 
+#include <QString>
 #include <QImage>
 
 #include "fractal_meta.hpp"
@@ -67,14 +68,11 @@ extern "C" {
     #include "render_pixel.h"
 }
 
-enum Render2D {
-    Mandelbrot = render2d_mandelbrot_pixel_tag
-};
-
 namespace render {
     void initialize();
     QImage get_scaled_copy(int, int);
     QImage get_image_copy();
+    void save_render(const QString&);
     void render(Fract);
     void stop_render();
     RenderProgress get_progress();

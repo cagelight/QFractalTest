@@ -139,11 +139,7 @@ void QGradientSlider::updateGradientImage(const QRect& rect) {
 
 bool QGradientSlider::SetSelectedColor(QColor newColorQ) {
     if (selectedNode != nullptr) {
-#ifdef LITTLE_ENDIAN_PRIORITY
         CColor nC = {(unsigned char)newColorQ.blue(), (unsigned char)newColorQ.green(), (unsigned char)newColorQ.red(), (unsigned char)newColorQ.alpha()};
-#else
-        CColor nC = {(unsigned char)newColorQ.alpha(), (unsigned char)newColorQ.red(), (unsigned char)newColorQ.green(), (unsigned char)newColorQ.blue()};
-#endif
         gradient.Set(selectedNode, nC);
         this->repaint();
         return true;

@@ -19,11 +19,13 @@ public slots:
     void BeginRender();
     void StopRender();
     void UpdateProgress();
+    void SaveRender(const QString&);
 private:
     //Overworld
     QGridLayout *layoutOverworld = new QGridLayout(this);
     Q2DNavigator *navigatorFractal = new Q2DNavigator(this);
     QColorDialog *colorDialogGradient = new QColorDialog(this);
+    QFileDialog *fileDialogSaveImage = new QFileDialog(this, Qt::Dialog);
     QGradientSlider *gradientSliderFractal = new QGradientSlider(this);
     QLineEdit *lineEditGradientPosition = new QLineEdit(this);
     //Renderbar

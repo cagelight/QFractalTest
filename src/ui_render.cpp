@@ -22,13 +22,13 @@ void FractUIRender::closeEvent(QCloseEvent* QCE) {
 }
 void FractUIRender::resizeEvent(QResizeEvent* QRE) {
     if (cbFit->checkState() == Qt::Checked) {
-        ui::update_render_view();
+        UpdateView();
     }
     QWidget::resizeEvent(QRE);
 }
 void FractUIRender::UpdateView() {
     if (cbFit->checkState() == Qt::Checked) {
-        QSize S = areaRender->viewport()->rect().size();
+        QSize S = areaRender->maximumViewportSize();
         labelRenderView->setPixmap(QPixmap::fromImage(render::get_scaled_copy(S.width(), S.height())));
         labelRenderView->setFixedSize(labelRenderView->pixmap()->size());
     } else {

@@ -94,7 +94,7 @@ static void begin_threaded_render(Fract s) {
     lastImageUpdate = update_image_interval::zero();
     progress.setMax((unsigned long)s.Settings.Width * s.Settings.Height);
     progress.reset();
-    CColor* iterbake = (CColor*)(unsigned int*)s.Gradient.Bake(s.Settings.Iterations);
+    CColor* iterbake = (CColor*)s.Gradient.Bake(s.Settings.Iterations);
     for (unsigned int i = 0; i < numCores; i++) {
         renderThreads.push(std::thread(std::bind(render_image, s.Settings, iterbake)));
     }
@@ -134,11 +134,6 @@ void render::initialize() {
     if (numCores == 0) numCores = 1;
     renderImage = new QImage(1, 1, QImage::Format_RGB32);
     renderImage->fill(0xFF000000);
-    volatile int et = 1;
-    if (*(char*)&et == 1)
-        little_endian = true;
-    else
-        little_endian = false;
 }
 
 QImage render::get_scaled_copy(int width, int height) {
@@ -153,6 +148,12 @@ QImage render::get_image_copy() {
     QImage Qi = renderImage->copy(renderImage->rect());
     pointerLock.unlock();
     return Qi;
+}
+
+void render::save_render(const QString& path) {
+    pointerLock.lock();
+    renderImage->save(path);
+    pointerLock.unlock();
 }
 
 void render::render(Fract f) {
