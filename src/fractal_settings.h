@@ -23,7 +23,7 @@ typedef struct FractSettings {
     unsigned int Height;
     float Scale;
     coord2 Offset;
-    unsigned short Iterations;
+    unsigned int Iterations;
 } FractSettings;
 
 #endif // FRACTAL_SETTINGS_H

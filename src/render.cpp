@@ -58,13 +58,13 @@ static bool delegate_line(unsigned int &lineNum, unsigned int*& rowPtr) {
 
 }
 
-static void render_image(FractSettings s, CColor* iterbake) {
+static void render_image(FractSettings s, CColor* iterbake, r2pass r2p) {
     unsigned int rowNum;
     unsigned int* rowPtr;
     while (delegate_line(rowNum, rowPtr) && mainGreenlight) {
         float fheight = (rowNum / (float)s.Height - 0.5);
         //render_line(s, fheight, rowPtr, iterbake);
-        render2d_line(s, fheight, (CColor*)rowPtr, iterbake);
+        render2d_line(s, fheight, (CColor*)rowPtr, iterbake, r2p);
         progressLock.lock();
         progress.update(s.Width);
         progressLock.unlock();
@@ -95,8 +95,12 @@ static void begin_threaded_render(Fract s) {
     progress.setMax((unsigned long)s.Settings.Width * s.Settings.Height);
     progress.reset();
     CColor* iterbake = (CColor*)s.Gradient.Bake(s.Settings.Iterations);
+    r2pass r2p = create_pass(2);
+    r2p.funcs[1] = FUNC_MANDELBROT;
+    r2p.funcs[0] = FUNC_FEATHERBOOT;
+    r2p.stop = STOP_MANDELBROT;
     for (unsigned int i = 0; i < numCores; i++) {
-        renderThreads.push(std::thread(std::bind(render_image, s.Settings, iterbake)));
+        renderThreads.push(std::thread(std::bind(render_image, s.Settings, iterbake, r2p)));
     }
     while (renderThreads.size() > 0) {
         std::thread &t = renderThreads.front();
@@ -104,6 +108,7 @@ static void begin_threaded_render(Fract s) {
             t.join();
         renderThreads.pop();
     }
+    destroy_pass(r2p);
     ui::update_render_progress();
     ui::update_render_view();
     delete[] iterbake;

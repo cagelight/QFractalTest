@@ -41,7 +41,7 @@ void FractUIMain::BeginRender() {
     Fract FS;
     FS.Settings.Width = 8192;
     FS.Settings.Height = 8192;
-    FS.Settings.Iterations = 40;
+    FS.Settings.Iterations = 160;
     FS.Settings.Scale = 4.0f;
     FS.Settings.Offset.X = 0.5f;
     FS.Settings.Offset.Y = 0.0f;

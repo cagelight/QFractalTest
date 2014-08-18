@@ -1,8 +1,10 @@
 #include "render_pixel.h"
 
+typedef struct dataset {
+    unsigned int size;
+    float *data;
+} dataset;
 const char* cl_dataset = "typedef struct dataset { unsigned int size; float *data; } dataset;";
-
-const float cutoff = 1e5f;
 
 dataset create_dataset(unsigned int size) {
     dataset d;
@@ -15,21 +17,61 @@ void destroy_dataset(dataset d) {
     free (d.data);
 }
 
-void render2d_line(FractSettings FS, float linePos, CColor* rowPtr, CColor* colorBake) {
-    coord2 coords = coord2DEF;
-    coords.Y = linePos * FS.Scale - FS.Offset.Y;
-    for (unsigned int c = 0; c < FS.Width; c++) {
-        coords.X = (c / (float)FS.Width - 0.5) * FS.Scale - FS.Offset.X;
-        unsigned int iter = 0;
-        dataset rd = create_dataset(4);
-        do {
-            r2_mandelbrot(coords.X, coords.Y, &rd);
-            iter++;
-        } while (!r2_mandelbrot_stop(&rd) && iter < FS.Iterations);
-        rowPtr[c] = colorBake[iter-1];
-        destroy_dataset(rd);
-    }
+typedef void (*r2func) (float, float, dataset*);
+typedef bool (*r2stop) (dataset*);
+typedef struct r2funcset {
+    r2func func;
+    unsigned int dsize;
+} r2funcset;
+typedef struct r2stopset {
+    r2stop func;
+    unsigned int dsize;
+} r2stopset;
+
+typedef struct r2set {
+    unsigned int funcSize;
+    r2funcset *funcs;
+    r2stopset stop;
+    unsigned int dsize;
+} r2set;
+
+const float cutoff = 1e5f;
+
+r2funcset get_function(R2DFUNC R2D);
+r2stopset get_stop(R2DSTOP R2D);
+
+r2pass create_pass(unsigned int size) {
+    r2pass r2p;
+    r2p.funcSize = size;
+    r2p.funcs = malloc(sizeof(R2DFUNC)*size);
+    return r2p;
 }
+
+void destroy_pass(r2pass rp) {
+    free(rp.funcs);
+}
+
+r2set create_set(r2pass rp) {
+    r2set rs;
+    rs.funcSize = rp.funcSize;
+    rs.stop = get_stop(rp.stop);
+    rs.funcs = malloc(sizeof(r2funcset)*rs.funcSize);
+    rs.dsize = 0;
+    for (unsigned int i = 0; i < rp.funcSize; i++) {
+        rs.funcs[i] = get_function(rp.funcs[i]);
+        unsigned int curdsize = rs.funcs[i].dsize;
+        if (curdsize > rs.dsize) {
+            rs.dsize = curdsize;
+        }
+    }
+    return rs;
+}
+
+void destroy_set(r2set rs) {
+    free(rs.funcs);
+}
+
+
 
 //--------------------ITERATION FUNCTIONS--------------------
 
@@ -44,17 +86,34 @@ void r2_mandelbrot(float x, float y, dataset *d) {
         "d->data[2] = d->data[0];"
         "d->data[3] = d->data[1];";
 
-void r2_mandelbrot_mod1(float x, float y, dataset *d) {
+void r2_mandelbrim(float x, float y, dataset *d) {
     d->data[0] = (d->data[2] * d->data[2] - d->data[3]) + x;
     d->data[1] = (d->data[3] * d->data[2] + d->data[2] * d->data[3]) + y;
     d->data[2] = d->data[0];
     d->data[3] = d->data[1];
-} const char *cl_r2_mandelbrot_mod1 =
+} const char *cl_r2_mandelbrim =
         "d->data[0] = (d->data[2] * d->data[2] - d->data[3]) + x;"
         "d->data[1] = (d->data[3] * d->data[2] + d->data[2] * d->data[3]) + y;"
         "d->data[2] = d->data[0];"
         "d->data[3] = d->data[1];"
         ;
+
+void r2_featherboot(float x, float y, dataset *d) {
+    d->data[0] = (d->data[2] * d->data[2] - d->data[3] * d->data[3] + d->data[4]) + x;
+    d->data[1] = (d->data[3] * d->data[2] + d->data[2] * d->data[3] - d->data[4]) + y;
+    d->data[2] = d->data[0];
+    d->data[3] = d->data[1];
+    d->data[4] = d->data[0] - d->data[1];
+} const char *cl_r2_featherboot =
+        "d->data[0] = (d->data[2] * d->data[2] - d->data[3] * d->data[3] + d->data[4]) + x;"
+        "d->data[1] = (d->data[3] * d->data[2] + d->data[2] * d->data[3] - d->data[4]) + y;"
+        "d->data[2] = d->data[0];"
+        "d->data[3] = d->data[1];"
+        "d->data[4] = d->data[0] - d->data[1];"
+        ;
+
+
+
 
 //--------------------STOP FUNCTIONS--------------------
 
@@ -66,48 +125,74 @@ bool r2_mandelbrot_stop(dataset *d) {
         "return true; return false;"
         ;
 
+bool r2_pavilion_stop(dataset *d) {
+    if (d->data[0] * d->data[0] + d->data[1] > cutoff)
+        return true; return false;
+} const char *cl_r2_pavilion_stop =
+        "if (d->data[0] * d->data[0] + d->data[1] > cutoff)"
+        "return true; return false;"
+        ;
+
+bool r2_rave_stop(dataset *d) {
+    if (d->data[0] + d->data[1] > cutoff)
+        return true; return false;
+} const char *cl_r2_rave_stop =
+        "if (d->data[0] + d->data[1] > cutoff)"
+        "return true; return false;"
+        ;
+
+
+
+
 //----------------------------------------
+
 
 r2funcset get_function(R2DFUNC R2D) {
     switch (R2D) {
-    case Mandelbrot:
-        return (r2funcset){&r2_mandelbrot, cl_r2_mandelbrot, 4};
-    case MandelbrotMod1:
-        return (r2funcset){&r2_mandelbrot_mod1, cl_r2_mandelbrot_mod1, 4};
+    case FUNC_MANDELBROT:
+        return (r2funcset){&r2_mandelbrot, 4};
+    case FUNC_MANDELBRIM:
+        return (r2funcset){&r2_mandelbrim, 4};
+    case FUNC_FEATHERBOOT:
+        return (r2funcset){&r2_featherboot, 4};
     default:
-        return (r2funcset){&r2_mandelbrot, cl_r2_mandelbrot, 4};
+        return (r2funcset){&r2_mandelbrot, 4};
     }
 }
 
 r2stopset get_stop(R2DSTOP R2D) {
     switch (R2D) {
-    case MandelbrotSTOP:
-        return (r2stopset){&r2_mandelbrot_stop, cl_r2_mandelbrot_stop, 4};
+    case STOP_MANDELBROT:
+        return (r2stopset){&r2_mandelbrot_stop, 4};
+    case STOP_PAVILION:
+        return (r2stopset){&r2_pavilion_stop, 4};
+    case STOP_CRYSTALINE:
+        return (r2stopset){&r2_rave_stop, 4};
     default:
-        return (r2stopset){&r2_mandelbrot_stop, cl_r2_mandelbrot_stop, 4};
+        return (r2stopset){&r2_mandelbrot_stop, 4};
     }
 }
 
-r2set get_set(r2pass rp) {
-    r2set rs;
-    rs.funcSize = rp.funcSize;
-    rs.stop = get_stop(rp.stop);
-    rs.funcs = malloc(sizeof(rs.funcs)*rs.funcSize);
-    rs.dsize = 0;
-    for (unsigned int i = 0; i < rp.funcSize; i++) {
-        rs.funcs[i] = get_function(rp.funcs[i]);
-        unsigned int curdsize = rs.funcs[i].dsize;
-        if (curdsize > rs.dsize) {
-            rs.dsize = curdsize;
-        }
+unsigned int render2d_pixel(coord2 c, r2set rs, unsigned int maxiter) {
+    dataset d = create_dataset(rs.dsize);
+    unsigned int iter = 0;
+    do {
+        rs.funcs[iter % rs.funcSize].func(c.X, c.Y, &d);
+        iter++;
+    } while (!rs.stop.func(&d) && iter < maxiter);
+    destroy_dataset(d);
+    return iter - 1;
+}
+
+void render2d_line(FractSettings FS, float linePos, CColor* rowPtr, CColor* colorBake, r2pass rp) {
+    r2set rs = create_set(rp);
+    coord2 coords = coord2DEF;
+    coords.Y = linePos * FS.Scale - FS.Offset.Y;
+    for (unsigned int c = 0; c < FS.Width; c++) {
+        coords.X = (c / (float)FS.Width - 0.5) * FS.Scale - FS.Offset.X;
+        dataset rd = create_dataset(rs.dsize);
+        rowPtr[c] = colorBake[render2d_pixel(coords, rs, FS.Iterations)];
+        destroy_dataset(rd);
     }
-    return rs;
-}
-
-void destroy_pass(r2pass rp) {
-    free(rp.funcs);
-}
-
-void destroy_set(r2set rs) {
-    free(rs.funcs);
+    destroy_set(rs);
 }
