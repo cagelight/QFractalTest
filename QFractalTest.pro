@@ -1,5 +1,4 @@
 CONFIG += c++11
-CONFIG += c11
 CONFIG += Debug
 
 QT += core gui
