@@ -17,12 +17,10 @@ public:
     void closeEvent(QCloseEvent*);
 signals:
     void beginCoreRender(QFractalMeta);
+    void stopCoreRender();
     void closing();
-public slots:
-    void BeginRender();
-    void StopRender();
-    void UpdateProgress();
-    void SaveRender(const QString&);
+private slots:
+    void prepareMetaSettings();
 private:
     //Overworld
     QGridLayout *layoutOverworld = new QGridLayout(this);

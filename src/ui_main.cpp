@@ -13,9 +13,9 @@ FractUIMain::FractUIMain() : QWidget() {
     renderProgressBar->setMinimum(0);
     renderProgressBar->setMaximum(render_progress_bar_max);
     startRender->setText("Render");
-    QObject::connect(startRender, SIGNAL(pressed()), this, SLOT(BeginRender()));
+    QObject::connect(startRender, SIGNAL(pressed()), this, SLOT(prepareMetaSettings()));
     stopRender->setText("Stop");
-    QObject::connect(stopRender, SIGNAL(pressed()), this, SLOT(StopRender()));
+    //QObject::connect(stopRender, SIGNAL(pressed()), this, SLOT(StopRender()));
     lineEditGradientPosition->setValidator(new QDoubleValidator(this));
     //Navbar
     layoutNavbar->addWidget(renderPreview, 0, 0);
@@ -38,32 +38,7 @@ void FractUIMain::closeEvent(QCloseEvent* QCE) {
     QWidget::closeEvent(QCE);
     emit closing();
 }
-void FractUIMain::BeginRender() {
-    /*FS;
-    FS.Settings.Width = 2048*6;
-    FS.Settings.Height = 2048*6;
-    FS.Settings.Iterations = 120;
-    FS.Settings.Scale = 8.0f;
-    FS.Settings.Offset.X = 0.5f;
-    FS.Settings.Offset.Y = 0.0f;
 
-    FS.Gradient = gradientSliderFractal->getGradient();
-
-    render::render(FS);*/
-}
-
-void FractUIMain::StopRender() {
-    //::render::stop_render();
-}
-
-void FractUIMain::UpdateProgress() {
-    //RenderProgress RP = ::render::get_progress();
-    //float prog = RP.totalProgress();
-    //renderProgressBar->setValue((int)(prog * render_progress_bar_max));
-    //renderProgressBar->setTextVisible(true);
-    //renderProgressBar->setFormat(QString::number(prog*100, 'f', 2) + QString("%"));
-}
-
-void FractUIMain::SaveRender(const QString& path) {
-    //::render::save_render(path);
+void FractUIMain::prepareMetaSettings() {
+    //emit beginCoreRender(...);
 }
