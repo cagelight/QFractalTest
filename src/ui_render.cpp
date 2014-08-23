@@ -1,6 +1,4 @@
 #include "ui_render.hpp"
-#include "ui.hpp"
-#include "render.hpp"
 
 FractUIRender::FractUIRender() : QWidget() {
     areaRender->setAlignment(Qt::AlignCenter);
@@ -10,7 +8,6 @@ FractUIRender::FractUIRender() : QWidget() {
     labelRenderView->setMinimumSize(1, 1);
     layoutOverworld->addWidget(areaRender);
     layoutOverworld->addWidget(cbFit);
-    this->setLayout(layoutOverworld);
 }
 
 QSize FractUIRender::sizeHint() const {
@@ -18,7 +15,7 @@ QSize FractUIRender::sizeHint() const {
 }
 void FractUIRender::closeEvent(QCloseEvent* QCE) {
     QWidget::closeEvent(QCE);
-    ui::close();
+    emit closing();
 }
 void FractUIRender::resizeEvent(QResizeEvent* QRE) {
     if (cbFit->checkState() == Qt::Checked) {
@@ -28,12 +25,12 @@ void FractUIRender::resizeEvent(QResizeEvent* QRE) {
 }
 void FractUIRender::UpdateView() {
     if (cbFit->checkState() == Qt::Checked) {
-        QSize S = areaRender->maximumViewportSize();
-        labelRenderView->setPixmap(QPixmap::fromImage(render::get_scaled_copy(S.width(), S.height())));
-        labelRenderView->setFixedSize(labelRenderView->pixmap()->size());
+        //QSize S = areaRender->maximumViewportSize();
+        //labelRenderView->setPixmap(QPixmap::fromImage(render::get_scaled_copy(S.width(), S.height())));
+        //labelRenderView->setFixedSize(labelRenderView->pixmap()->size());
     } else {
-        QImage I = render::get_image_copy();
-        labelRenderView->setPixmap(QPixmap::fromImage(I));
-        labelRenderView->setFixedSize(I.width(), I.height());
+        //QPixmap P = ::render::get_image_pixmap();
+        //labelRenderView->setPixmap(P);
+        //labelRenderView->setFixedSize(P.width(), P.height());
     }
 }

@@ -4,10 +4,10 @@
 #include <QWidget>
 #include <QtWidgets>
 
-#include "render.hpp"
-
+#include "qfractalmeta.hpp"
 #include "qwidget_gradient.hpp"
 #include "qwidget_2dnavigator.hpp"
+#include "qwidget_renderpreview.hpp"
 
 class FractUIMain : public QWidget {
     Q_OBJECT
@@ -15,6 +15,9 @@ public:
     FractUIMain();
     QSize sizeHint() const;
     void closeEvent(QCloseEvent*);
+signals:
+    void beginCoreRender(QFractalMeta);
+    void closing();
 public slots:
     void BeginRender();
     void StopRender();
@@ -23,11 +26,14 @@ public slots:
 private:
     //Overworld
     QGridLayout *layoutOverworld = new QGridLayout(this);
-    Q2DNavigator *navigatorFractal = new Q2DNavigator(this);
     QColorDialog *colorDialogGradient = new QColorDialog(this);
     QFileDialog *fileDialogSaveImage = new QFileDialog(this, Qt::Dialog);
     QGradientSlider *gradientSliderFractal = new QGradientSlider(this);
     QLineEdit *lineEditGradientPosition = new QLineEdit(this);
+    //Navbar
+    QGridLayout *layoutNavbar = new QGridLayout(this);
+    QRenderPreview *renderPreview = new QRenderPreview(this);
+    Q2DNavigator *navigatorFractal = new Q2DNavigator(this, (Q2DNavigatorOptions)(NAVIGATOR2_CENTER | NAVIGATOR2_ZOOM));
     //Renderbar
     QGridLayout *layoutRenderbar = new QGridLayout(this);
     QProgressBar *renderProgressBar = new QProgressBar(this);

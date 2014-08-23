@@ -10,6 +10,8 @@ public:
     QSize sizeHint() const;
     void closeEvent(QCloseEvent*);
     void resizeEvent(QResizeEvent*);
+signals:
+    void closing();
 public slots:
     void UpdateView();
 private:

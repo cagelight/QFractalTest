@@ -1,13 +1,20 @@
 #ifndef UI_HPP
 #define UI_HPP
 
-namespace ui {
-    void initialize(int, char*[]);
-    int execute();
-    void close();
-    void terminate();
-    void update_render_view();
-    void update_render_progress();
-}
+#include <QApplication>
+#include <QObject>
+
+class FractUIMain;
+class FractUIRender;
+
+class FractUIManager : public QApplication {
+    Q_OBJECT
+public:
+    FractUIManager(int argc, char *argv[]);
+    ~FractUIManager();
+private:
+    FractUIMain *mainWindow;
+    FractUIRender *renderWindow;
+};
 
 #endif // UI_HPP

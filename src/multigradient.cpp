@@ -17,7 +17,7 @@ MultiGradient::~MultiGradient() {
     }
 }
 
-const GradientNode* MultiGradient::Add(float pos, CColor C) {
+const GradientNode* MultiGradient::Add(float pos, QColor C) {
     GradientNode* newNode = new GradientNode(pos, C);
     t.push_back(newNode);
     if (t.size() > 1 && (*(t.end() - 2))->first > pos)
@@ -37,7 +37,7 @@ bool MultiGradient::Set(const GradientNode* ptr, float pos) {
     return false;
 }
 
-bool MultiGradient::Set(const GradientNode* ptr, CColor C) {
+bool MultiGradient::Set(const GradientNode* ptr, QColor C) {
     for(GradientNode* v : t) {
         if (v == ptr) {
             v->second = C;
@@ -47,7 +47,7 @@ bool MultiGradient::Set(const GradientNode* ptr, CColor C) {
     return false;
 }
 
-bool MultiGradient::Set(const GradientNode* ptr, float pos, CColor C) {
+bool MultiGradient::Set(const GradientNode* ptr, float pos, QColor C) {
     for(GradientNode* v : t) {
         if (v == ptr) {
             v->first = pos;
@@ -86,7 +86,7 @@ Range MultiGradient::GetRange() const {
     return S;
 }
 
-CColor MultiGradient::Lerp(float pos) const {
+QColor MultiGradient::Lerp(float pos) const {
     if (this->Nodes() > 0) {
         std::vector<GradientNode*>::const_iterator i = t.begin();
         if (pos <= (*i)->first)
@@ -95,27 +95,27 @@ CColor MultiGradient::Lerp(float pos) const {
             if (pos <= (*i)->first) {
                 GradientNode& Left = **(i-1);
                 GradientNode& Right = **i;
-                float dmax = Right.first - Left.first;
-                float delta = pos - Left.first;
-                float rpol = delta / dmax;
-                float lpol = 1.0f - rpol;
-                CColor F;
-                F.A = (unsigned char)(Left.second.A * lpol + Right.second.A * rpol);
-                F.R = (unsigned char)(Left.second.R * lpol + Right.second.R * rpol);
-                F.G = (unsigned char)(Left.second.G * lpol + Right.second.G * rpol);
-                F.B = (unsigned char)(Left.second.B * lpol + Right.second.B * rpol);
+                qreal dmax = Right.first - Left.first;
+                qreal delta = pos - Left.first;
+                qreal rpol = delta / dmax;
+                qreal lpol = 1.0f - rpol;
+                QColor F;
+                F.setAlphaF(Left.second.alphaF() * lpol + Right.second.alphaF() * rpol);
+                F.setRedF(Left.second.redF() * lpol + Right.second.redF() * rpol);
+                F.setGreenF(Left.second.greenF() * lpol + Right.second.greenF() * rpol);
+                F.setBlueF(Left.second.blueF() * lpol + Right.second.blueF() * rpol);
                 return F;
             }
         }
         return (*(i-1))->second;
     } else {
-        return CColorBLACK;
+        return QColor(Qt::black);
     }
 }
 
 template <int LEN>
-std::array<CColor, LEN> MultiGradient::Bake() const {
-    std::array<CColor, LEN> arry;
+std::array<QColor, LEN> MultiGradient::Bake() const {
+    std::array<QColor, LEN> arry;
     Range MM = GetRange();
     float delta = MM.max - MM.min;
     for (int i = 0; i < LEN; i++) {
@@ -125,8 +125,8 @@ std::array<CColor, LEN> MultiGradient::Bake() const {
     return arry;
 }
 
-CColor* MultiGradient::Bake(int len) const {
-    CColor* arry = new CColor[len];
+QColor* MultiGradient::Bake(int len) const {
+    QColor* arry = new QColor[len];
     Range MM = GetRange();
     float delta = MM.max - MM.min;
     for (int i = 0; i < len; i++) {
@@ -136,8 +136,10 @@ CColor* MultiGradient::Bake(int len) const {
     return arry;
 }
 
-CColor* MultiGradient::Bake(float min, float max, int len, int overhead) const {
-    CColor* arry = new CColor[len];
+
+
+QColor* MultiGradient::Bake(float min, float max, int len, int overhead) const {
+    QColor* arry = new QColor[len];
     float delta = max - min;
     for (int i = -overhead; i < len-overhead; i++) {
         int ia = i + overhead;
@@ -151,7 +153,7 @@ void MultiGradient::Sort() {
     std::sort(t.begin(), t.end(), CompareI);
 }
 
-void MultiGradient::DirtyAdd(float pos, CColor C) {
+void MultiGradient::DirtyAdd(float pos, QColor C) {
     t.push_back(new GradientNode(pos, C));
 }
 

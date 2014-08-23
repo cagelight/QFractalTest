@@ -1,4 +1,5 @@
 CONFIG += c++11
+CONFIG += c11
 CONFIG += Debug
 
 QT += core gui
@@ -7,35 +8,34 @@ QT += widgets
 TARGET = QFractalTest
 TEMPLATE = app
 
-
 SOURCES += \
     src/main.cpp \
-    src/executive.cpp \
     src/ui.cpp \
-    src/render.cpp \
     src/qwidget_gradient.cpp \
-    src/common.cpp \
     src/qwidget_2dnavigator.cpp \
     src/ui_main.cpp \
     src/ui_render.cpp \
     src/render_pixel.c \
-    src/multigradient.cpp
+    src/multigradient.cpp \
+    src/qwidget_renderpreview.cpp \
+    src/qobject_fractalrenderer.cpp \
+    src/fractal_settings.c
 
 HEADERS  += \
-    src/executive.hpp \
     src/ui.hpp \
-    src/render.hpp \
     src/debug.hpp \
     src/qwidget_gradient.hpp \
     src/common.hpp \
     src/qwidget_2dnavigator.hpp \
     src/ui_main.hpp \
     src/ui_render.hpp \
-    src/ui_delegator.hpp \
     src/render_pixel.h \ 
     src/multigradient.hpp \
     src/fractal_settings.h \
-    src/fractal_meta.hpp
+    src/qwidget_renderpreview.hpp \
+    src/qobject_fractalrenderer.hpp \
+    src/render_enumerations.h \
+    src/qfractalmeta.hpp
 
 Release:DESTDIR = release
 Release:OBJECTS_DIR = release/.obj

@@ -22,7 +22,7 @@ public:
 struct Range {
     float min;
     float max;
-    Range(float, float);
+    Range(float min, float max) : min(min), max(max) {}
 };
 
 #endif // GRADIENT_HPP

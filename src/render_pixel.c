@@ -1,5 +1,7 @@
 #include "render_pixel.h"
 
+#include <math.h>
+
 typedef struct dataset {
     unsigned int size;
     float *data;
@@ -35,7 +37,7 @@ typedef struct r2set {
     unsigned int dsize;
 } r2set;
 
-const float cutoff = 1e5f;
+const float cutoff = 4.0;
 
 r2funcset get_function(R2DFUNC R2D);
 r2stopset get_stop(R2DSTOP R2D);
@@ -112,7 +114,20 @@ void r2_featherboot(float x, float y, dataset *d) {
         "d->data[4] = d->data[0] - d->data[1];"
         ;
 
-
+void r2_burningship(float x, float y, dataset *d) {
+    d->data[2] = fabs(d->data[2]);
+    d->data[3] = fabs(d->data[3]);
+    d->data[0] = (d->data[2] * d->data[2] - d->data[3] * d->data[3]) + x;
+    d->data[1] = (d->data[3] * d->data[2] + d->data[2] * d->data[3]) + y;
+    d->data[2] = d->data[0];
+    d->data[3] = d->data[1];
+} const char *cl_r2_burningship =
+        "d->data[2] = fabs(d->data[2]);"
+        "d->data[3] = fabs(d->data[3]);"
+        "d->data[0] = (d->data[2] * d->data[2] - d->data[3] * d->data[3]) + x;"
+        "d->data[1] = (d->data[3] * d->data[2] + d->data[2] * d->data[3]) + y;"
+        "d->data[2] = d->data[0];"
+        "d->data[3] = d->data[1];";
 
 
 //--------------------STOP FUNCTIONS--------------------
@@ -149,27 +164,29 @@ bool r2_rave_stop(dataset *d) {
 
 r2funcset get_function(R2DFUNC R2D) {
     switch (R2D) {
-    case FUNC_MANDELBROT:
+DEFAULT:case FUNC_MANDELBROT:
         return (r2funcset){&r2_mandelbrot, 4};
     case FUNC_MANDELBRIM:
         return (r2funcset){&r2_mandelbrim, 4};
     case FUNC_FEATHERBOOT:
-        return (r2funcset){&r2_featherboot, 4};
+        return (r2funcset){&r2_featherboot, 5};
+    case FUNC_BURNINGSHIP:
+        return (r2funcset){&r2_burningship, 4};
     default:
-        return (r2funcset){&r2_mandelbrot, 4};
+        goto DEFAULT;
     }
 }
 
 r2stopset get_stop(R2DSTOP R2D) {
     switch (R2D) {
-    case STOP_MANDELBROT:
+DEFAULT:case STOP_MANDELBROT:
         return (r2stopset){&r2_mandelbrot_stop, 4};
     case STOP_PAVILION:
         return (r2stopset){&r2_pavilion_stop, 4};
     case STOP_CRYSTALINE:
         return (r2stopset){&r2_rave_stop, 4};
     default:
-        return (r2stopset){&r2_mandelbrot_stop, 4};
+        goto DEFAULT;
     }
 }
 
@@ -181,18 +198,17 @@ unsigned int render2d_pixel(coord2 c, r2set rs, unsigned int maxiter) {
         iter++;
     } while (!rs.stop.func(&d) && iter < maxiter);
     destroy_dataset(d);
-    return iter - 1;
+    return iter-1;
 }
 
-void render2d_line(FractSettings FS, float linePos, CColor* rowPtr, CColor* colorBake, r2pass rp) {
-    r2set rs = create_set(rp);
+void render2d_line(fract_settings fs, CColor* rowPtr, unsigned int linePos) {
+    r2set rs = create_set(fs.pass);
     coord2 coords = coord2DEF;
-    coords.Y = linePos * FS.Scale - FS.Offset.Y;
-    for (unsigned int c = 0; c < FS.Width; c++) {
-        coords.X = (c / (float)FS.Width - 0.5) * FS.Scale - FS.Offset.X;
-        dataset rd = create_dataset(rs.dsize);
-        rowPtr[c] = colorBake[render2d_pixel(coords, rs, FS.Iterations)];
-        destroy_dataset(rd);
+    float fheight = (linePos / (float)fs.Height - 0.5);
+    coords.Y = fheight * fs.Scale - fs.Offset.Y;
+    for (unsigned int c = 0; c < fs.Width; c++) {
+        coords.X = (c / (float)fs.Width - 0.5) * fs.Scale - fs.Offset.X;
+        rowPtr[c] = fs.colorbake[render2d_pixel(coords, rs, fs.Iterations)];;
     }
     destroy_set(rs);
 }

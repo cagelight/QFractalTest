@@ -1,6 +1,8 @@
 #ifndef FRACTAL_SETTINGS_H
 #define FRACTAL_SETTINGS_H
 
+#include "render_enumerations.h"
+
 #ifndef __cplusplus
 #include <stdbool.h>
 #endif
@@ -9,21 +11,29 @@ typedef struct coord2 {
     float X;
     float Y;
 } coord2;
-const coord2 coord2DEF = {0.0f,0.0f};
+const extern coord2 coord2DEF;
 
 typedef struct ARGB { unsigned char A, R, G, B; } ARGB;
 typedef struct BGRA { unsigned char B, G, R, A; } BGRA;
 
 typedef BGRA CColor;
-const CColor CColorBLACK = {0x00,0x00,0x00,0xFF};
-const CColor CColorWHITE = {0xFF,0xFF,0xFF,0xFF};
+const extern CColor CColorBLACK;
+const extern CColor CColorWHITE;
 
-typedef struct FractSettings {
+typedef struct r2pass {
+    unsigned int funcSize;
+    R2DFUNC *funcs;
+    R2DSTOP stop;
+} r2pass;
+
+typedef struct fract_settings { //Use only the below functions for creation/destruction, and don't forget to allocate "colorbake" yourself.
     unsigned int Width;
     unsigned int Height;
     float Scale;
     coord2 Offset;
     unsigned int Iterations;
-} FractSettings;
+    CColor* colorbake;
+    r2pass pass;
+} fract_settings;
 
 #endif // FRACTAL_SETTINGS_H

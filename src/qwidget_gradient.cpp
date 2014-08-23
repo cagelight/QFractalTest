@@ -7,8 +7,8 @@ static const int handleDiameter = 5;
 QGradientSlider::QGradientSlider(QWidget *parent) :
     QWidget(parent),
     gradient{
-        GradientNode(0.0f, CColorWHITE),
-        GradientNode(1.0f, CColorBLACK)},
+        GradientNode(0.0f, QColor(Qt::white)),
+        GradientNode(1.0f, QColor(Qt::black))},
     gradmm(gradient.GetRange())
 {
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -24,15 +24,15 @@ void QGradientSlider::paintEvent(QPaintEvent* QPE) {
     painter.drawImage(gradientRect, gradmap);
     for (const GradientNode* v : gradient.GetVector()) {
         int hpos = (v->first - gradmm.min) / gradmm.max * (this->width() - 2*handleDiameter) + handleDiameter;
-        CColor C = v->second;
+        QColor C = v->second;
         if (v == selectedNode) {
-            painter.setBrush(QBrush(QColor(255-C.R, 255-C.G, 255-C.B), Qt::SolidPattern));
+            painter.setBrush(QBrush(QColor(255-C.red(), 255-C.green(), 255-C.blue()), Qt::SolidPattern));
             painter.drawRect(hpos-handleDiameter-1, -1, (handleDiameter + 1) * 2, (handleDiameter + 1) * 2);
             painter.drawRect(hpos-1, handleDiameter+2, 2, QPE->rect().height() - (2 * handleDiameter) - 2);
         }
         painter.setBrush(brushBlack);
         painter.drawRect(hpos-handleDiameter, 0, handleDiameter * 2, handleDiameter * 2);
-        painter.setBrush(QBrush(QColor(C.R, C.G, C.B), Qt::SolidPattern));
+        painter.setBrush(QBrush(QColor(C.red(), C.green(), C.blue()), Qt::SolidPattern));
         painter.drawRect(hpos-handleDiameter+2, 2, (handleDiameter - 2) * 2, (handleDiameter - 2) * 2);
     }
 }
@@ -63,7 +63,7 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
         }
         if (!fflag && QME->button() == Qt::LeftButton) {
             float newPos = std::min(std::max(((float)QME->localPos().x() / this->width()) * (gradmm.max - gradmm.min) + gradmm.min, gradmm.min), gradmm.max);
-            CColor newColor = gradient.Lerp(newPos);
+            QColor newColor = gradient.Lerp(newPos);
             const GradientNode* N = gradient.Add(newPos, newColor);
             this->SetSelectedNode(N);
         }
@@ -127,11 +127,11 @@ void QGradientSlider::UpdatePositionSignal() {
 
 void QGradientSlider::updateGradientImage(const QRect& rect) {
     this->gradmap = QImage(rect.size(), QImage::Format_ARGB32);
-    CColor* horizmap = this->gradient.Bake(gradmm.min, gradmm.max, gradmap.width(), handleDiameter);
+    QColor* horizmap = this->gradient.Bake(gradmm.min, gradmm.max, gradmap.width(), handleDiameter);
     for (int row = 0; row < gradmap.height(); row++) {
-        CColor* rowPtr = (CColor*)gradmap.scanLine(row);
+        unsigned int* rowPtr = (unsigned int*)gradmap.scanLine(row);
         for (int col = 0; col < gradmap.width(); col++) {
-            rowPtr[col] = horizmap[col];
+            rowPtr[col] = horizmap[col].rgba();
         }
     }
     delete[] horizmap;
@@ -139,8 +139,7 @@ void QGradientSlider::updateGradientImage(const QRect& rect) {
 
 bool QGradientSlider::SetSelectedColor(QColor newColorQ) {
     if (selectedNode != nullptr) {
-        CColor nC = {(unsigned char)newColorQ.blue(), (unsigned char)newColorQ.green(), (unsigned char)newColorQ.red(), (unsigned char)newColorQ.alpha()};
-        gradient.Set(selectedNode, nC);
+        gradient.Set(selectedNode, newColorQ);
         this->repaint();
         return true;
     } else return false;
