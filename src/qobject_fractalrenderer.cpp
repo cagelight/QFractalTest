@@ -23,6 +23,15 @@ QFractalRenderer::QFractalRenderer(QFractalMeta F) : QObject(0), fract(F), image
     this->setupFract();
 }
 
+QFractalRenderer::~QFractalRenderer() {
+    this->stop();
+    if (fractC != nullptr) {
+        delete[] fractC->pass.funcs;
+        delete[] fractC->colorbake;
+        delete fractC;
+    }
+}
+
 QImage QFractalRenderer::getImage() {
     return image;
 }
@@ -117,7 +126,9 @@ void QFractalRenderer::delegate() {
             t.join();
         workerThreads.pop();
     }
+    emit progress(1, 1);
     emit finished();
+    emit finished(this->image);
 }
 
 void QFractalRenderer::work() {
@@ -125,7 +136,7 @@ void QFractalRenderer::work() {
     unsigned int* rowPtr;
     while (delegateLine(rowNum, rowPtr) && !dostop) {
         render2d_line(*fractC, (CColor*)rowPtr, rowNum);
-        emit progressUpdate(fract.size.height(), delegateCur);
+        emit progress(delegateCur, fract.size.height());
     }
 }
 

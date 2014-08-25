@@ -1,9 +1,11 @@
 #ifndef QOBJECT_FRACTALRENDERER_HPP
 #define QOBJECT_FRACTALRENDERER_HPP
 
+#include <atomic>
+#include <chrono>
 #include <mutex>
-#include <thread>
 #include <queue>
+#include <thread>
 
 #include <QObject>
 #include <QImage>
@@ -12,10 +14,11 @@
 
 struct fract_settings;
 
-class QFractalRenderer : public QObject { //THIS CLASS __IS NOT__ THREAD SAFE OR COPYABLE. ALWAYS USE IN MAIN QT THREAD!
+class QFractalRenderer : public QObject { //THIS CLASS __IS NOT__ THREAD SAFE OR COPYABLE. THREADS FOR INTERNAL USE ONLY.
     Q_OBJECT
 public:
     QFractalRenderer(QFractalMeta F);
+    ~QFractalRenderer();
     QImage getImage();
     void setSettings(QFractalMeta F); //Stops an active render and then resets the state.
 signals:
@@ -23,8 +26,8 @@ signals:
     void paused();
     void stopped();
     void wasreset();
-    void progressUpdate(int max, int cur);
-    void finished();
+    void progress(int max, int cur);
+    void finished(); void finished(QImage);
 public slots:
     void start();
     void pause();
@@ -34,10 +37,10 @@ private:
     QFractalMeta fract;
     fract_settings *fractC = nullptr;
     QImage image;
-    bool dopause, dostop, isactive;
+    std::atomic_bool dopause, dostop, isactive;
     std::thread *delegateThread;
     std::queue<std::thread> workerThreads;
-    int delegateCur = 0;
+    std::atomic_int delegateCur;
     std::mutex delegateLock;
     void setupFract();
     void resume();

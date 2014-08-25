@@ -16,11 +16,13 @@ public:
     QSize sizeHint() const;
     void closeEvent(QCloseEvent*);
 signals:
-    void beginCoreRender(QFractalMeta);
-    void stopCoreRender();
+    void startMetaEmit(QFractalMeta);
+    void stopPressed();
     void closing();
+public slots:
+    void updateProgress(int, int);
 private slots:
-    void prepareMetaSettings();
+    void formalizeMeta();
 private:
     //Overworld
     QGridLayout *layoutOverworld = new QGridLayout(this);
