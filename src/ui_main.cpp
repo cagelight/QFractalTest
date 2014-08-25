@@ -42,7 +42,7 @@ void FractUIMain::closeEvent(QCloseEvent* QCE) {
 void FractUIMain::updateProgress(int cur, int max) {
     this->renderProgressBar->setMaximum(max);
     this->renderProgressBar->setValue(cur);
-    this->renderProgressBar->setFormat(QString::number((cur/(float)max), 'g', 2));
+    this->renderProgressBar->setFormat(QString::number((cur/(float)max)*100.0f, 'f', 2)+QString("%"));
 }
 
 void FractUIMain::formalizeMeta() {
