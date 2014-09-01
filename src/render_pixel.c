@@ -37,7 +37,7 @@ typedef struct r2set {
     unsigned int dsize;
 } r2set;
 
-const float cutoff = 4.0;
+const float cutoff = 4.0f;
 
 r2funcset get_function(R2DFUNC R2D);
 r2stopset get_stop(R2DSTOP R2D);

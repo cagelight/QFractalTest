@@ -1,13 +1,17 @@
 #include "ui_render.hpp"
 
-FractUIRender::FractUIRender() : QWidget(), localCopy(0, 0) {
+FractUIRender::FractUIRender() : QWidget(), viewPtr(nullptr) {
     areaRender->setAlignment(Qt::AlignCenter);
     areaRender->setWidget(labelRenderView);
     cbFit->setText("Fit");
+    cbFit->setToolTip("Unchecking this essentially doubles memory usage, very large images liable to cause out of memory errors.\nBe aware of your memory usage and capacity.");
+    cbFit->setToolTipDuration(0);
+    cbFit->setChecked(true);
     QObject::connect(cbFit, SIGNAL(stateChanged(int)), this, SLOT(ResetView()));
     labelRenderView->setMinimumSize(1, 1);
     layoutOverworld->addWidget(areaRender);
     layoutOverworld->addWidget(cbFit);
+    this->startTimer(1000/5);
 }
 
 QSize FractUIRender::sizeHint() const {
@@ -24,18 +28,32 @@ void FractUIRender::resizeEvent(QResizeEvent* QRE) {
     QWidget::resizeEvent(QRE);
 }
 
-void FractUIRender::SetView(const QImage& img) {
-    localCopy = img;
-    if (cbFit->checkState() == Qt::Checked && !img.isNull()) {
-        QSize S = areaRender->maximumViewportSize();
-        labelRenderView->setPixmap(QPixmap::fromImage(img.scaled(S, Qt::KeepAspectRatio)));
-        labelRenderView->setFixedSize(labelRenderView->pixmap()->size());
-    } else {
-        labelRenderView->setPixmap(QPixmap::fromImage(img));
-        labelRenderView->setFixedSize(img.width(), img.height());
+void FractUIRender::SetView(const QImage *imgPtr) {
+    viewPtr = imgPtr;
+    if (viewPtr != nullptr) {
+        if (cbFit->checkState() == Qt::Checked && !viewPtr->isNull()) {
+            QSize S = areaRender->maximumViewportSize();
+            labelRenderView->setPixmap(QPixmap::fromImage(viewPtr->scaled(S, Qt::KeepAspectRatio)));
+            labelRenderView->setFixedSize(labelRenderView->pixmap()->size());
+        } else {
+            QImage &&rimg = viewPtr->copy();
+            labelRenderView->setPixmap(QPixmap::fromImage(rimg));
+            labelRenderView->setFixedSize(viewPtr->width(), viewPtr->height());
+        }
     }
 }
 
 void FractUIRender::ResetView() {
-    this->SetView(localCopy);
+    this->SetView(viewPtr);
+}
+
+void FractUIRender::RequestUpdate() {
+    updateRequested = true;
+}
+
+void FractUIRender::timerEvent(QTimerEvent *) {
+    if (updateRequested) {
+        this->ResetView();
+        updateRequested = false;
+    }
 }

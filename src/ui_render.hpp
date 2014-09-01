@@ -13,11 +13,14 @@ public:
 signals:
     void closing();
 public slots:
-    void SetView(const QImage&);
-private slots:
+    void SetView(const QImage*);
     void ResetView();
+    void RequestUpdate();
 private:
-    QImage localCopy;
+    const QImage *viewPtr;
+    //Update Notification
+    bool updateRequested;
+    void timerEvent(QTimerEvent*);
     //UI Elements
     QGridLayout *layoutOverworld = new QGridLayout(this);
     QCheckBox *cbFit = new QCheckBox(this);

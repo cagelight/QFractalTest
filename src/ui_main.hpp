@@ -6,7 +6,7 @@
 
 #include "qfractalmeta.hpp"
 #include "qwidget_gradient.hpp"
-#include "qwidget_2dnavigator.hpp"
+#include "qwidget_navigator2d.hpp"
 #include "qwidget_renderpreview.hpp"
 
 class FractUIMain : public QWidget {
@@ -20,10 +20,18 @@ signals:
     void stopPressed();
     void closing();
 public slots:
-    void updateProgress(int, int);
+    void updateProgressBar(int, int);
+    void requestUpdateProgressBar(int, int);
 private slots:
     void formalizeMeta();
+    void metaOffsetDir(QNavigator2D::Direction);
+private://FractalMetaVars
+    QPointF metaOffset = QPointF(0.0f, 0.0f);
 private:
+    //Update Notification
+    bool updateRequested = false;
+    int recCur, recMax;
+    void timerEvent(QTimerEvent*);
     //Overworld
     QGridLayout *layoutOverworld = new QGridLayout(this);
     QColorDialog *colorDialogGradient = new QColorDialog(this);
@@ -33,7 +41,7 @@ private:
     //Navbar
     QGridLayout *layoutNavbar = new QGridLayout(this);
     QRenderPreview *renderPreview = new QRenderPreview(this);
-    Q2DNavigator *navigatorFractal = new Q2DNavigator(this, (Q2DNavigatorOptions)(NAVIGATOR2_CENTER | NAVIGATOR2_ZOOM));
+    QNavigator2D *navigatorFractal = new QNavigator2D(this, (QNavigator2D::Options)(QNavigator2D::NAVIGATOR2_CENTER | QNavigator2D::NAVIGATOR2_ZOOM));
     //Renderbar
     QGridLayout *layoutRenderbar = new QGridLayout(this);
     QProgressBar *renderProgressBar = new QProgressBar(this);

@@ -2,7 +2,6 @@
 #define QOBJECT_FRACTALRENDERER_HPP
 
 #include <atomic>
-#include <chrono>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -14,23 +13,21 @@
 
 struct fract_settings;
 
-typedef std::chrono::duration<int, std::ratio<1, 60>> update_progress_interval;
-typedef std::chrono::duration<int, std::ratio<1, 4>> update_image_interval;
-
 class QFractalRenderer : public QObject { //THIS CLASS __IS NOT__ THREAD SAFE OR COPYABLE. THREADS FOR INTERNAL USE ONLY.
     Q_OBJECT
 public:
     QFractalRenderer(QFractalMeta F);
     ~QFractalRenderer();
     QImage getImage();
+    const QImage *getImagePtr() const;
     void setSettings(QFractalMeta F); //Stops an active render and then resets the state.
 signals:
     void started();
     void paused();
     void stopped();
     void wasreset();
-    void progress(int max, int cur);
-    void finished(); void finished(QImage);
+    void progress(int, int);
+    void finished();
 public slots:
     void start();
     void pause();
@@ -46,11 +43,6 @@ private:
     std::queue<std::thread> workerThreads;
     std::atomic_int delegateCur;
     std::mutex delegateLock;
-    //Chrono
-    std::mutex chronoLock;
-    std::chrono::high_resolution_clock::time_point renderStart;
-    update_progress_interval lastProgressUpdate;
-    update_image_interval lastImageUpdate;
     ///Methods
     void setupFract();
     void resume();

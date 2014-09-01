@@ -8,6 +8,8 @@ class QRenderPreview : public QWidget {
 public:
     QRenderPreview(QWidget *parent = 0);
     void paintEvent(QPaintEvent *);
+public slots:
+    //void update();
 };
 
 #endif // QWIDGET_RENDERPREVIEW_HPP

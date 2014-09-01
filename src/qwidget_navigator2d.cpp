@@ -1,4 +1,4 @@
-#include "qwidget_2dnavigator.hpp"
+#include "qwidget_navigator2d.hpp"
 
 #include <QtWidgets>
 #include <QtGui>
@@ -76,7 +76,7 @@ static QImage GetDecIcon(QSize size = QSize(32, 32), QColor color = QColor(0, 0,
     return img;
 }
 
-Q2DNavigator::Q2DNavigator(QWidget *parent, Q2DNavigatorOptions options) :
+QNavigator2D::QNavigator2D(QWidget *parent, QNavigator2D::Options options) :
     QWidget(parent),
     layout(new QGridLayout(this)),
     buttonUp(new QPushButton(this)),
@@ -95,10 +95,10 @@ Q2DNavigator::Q2DNavigator(QWidget *parent, Q2DNavigatorOptions options) :
     buttonDown->setFixedSize(buttonSize);
     buttonLeft->setFixedSize(buttonSize);
     buttonRight->setFixedSize(buttonSize);
-    QObject::connect(buttonUp, SIGNAL(released()), this, SIGNAL(upReleased()));
-    QObject::connect(buttonDown, SIGNAL(released()), this, SIGNAL(downReleased()));
-    QObject::connect(buttonLeft, SIGNAL(released()), this, SIGNAL(leftReleased()));
-    QObject::connect(buttonRight, SIGNAL(released()), this, SIGNAL(rightReleased()));
+    QObject::connect(buttonUp, SIGNAL(released()), this, SLOT(navUp()));
+    QObject::connect(buttonDown, SIGNAL(released()), this, SLOT(navDown()));
+    QObject::connect(buttonLeft, SIGNAL(released()), this, SLOT(navLeft()));
+    QObject::connect(buttonRight, SIGNAL(released()), this, SLOT(navRight()));
     layout->addWidget(buttonUp, 0, 1);
     layout->addWidget(buttonDown, 2, 1);
     layout->addWidget(buttonLeft, 1, 0);
@@ -107,7 +107,7 @@ Q2DNavigator::Q2DNavigator(QWidget *parent, Q2DNavigatorOptions options) :
         buttonCenter = new QPushButton(this);
         buttonCenter->setIcon(QIcon(QPixmap::fromImage(GetCircleIcon(iconSize))));
         buttonCenter->setFixedSize(buttonSize);
-        QObject::connect(buttonCenter, SIGNAL(released()), this, SIGNAL(centerReleased()));
+        QObject::connect(buttonCenter, SIGNAL(released()), this, SLOT(navCenter()));
         layout->addWidget(buttonCenter, 1, 1);
     }
     if (options & NAVIGATOR2_ZOOM) {
@@ -117,17 +117,17 @@ Q2DNavigator::Q2DNavigator(QWidget *parent, Q2DNavigatorOptions options) :
         buttonDecrement->setIcon(QIcon(QPixmap::fromImage(GetDecIcon(iconSize))));
         buttonIncrement->setFixedSize(buttonSize);
         buttonDecrement->setFixedSize(buttonSize);
-        QObject::connect(buttonIncrement, SIGNAL(released()), this, SIGNAL(incrementReleased()));
-        QObject::connect(buttonDecrement, SIGNAL(released()), this, SIGNAL(decrementReleased()));
+        QObject::connect(buttonIncrement, SIGNAL(released()), this, SLOT(navInc()));
+        QObject::connect(buttonDecrement, SIGNAL(released()), this, SLOT(navDec()));
         layout->addWidget(buttonIncrement, 0, 2);
         layout->addWidget(buttonDecrement, 2, 2);
     }
     if (options & NAVIGATOR2_MARKSV) {
-        buttonCenter = new QPushButton(this);
-        buttonCenter->setIcon(QIcon(QPixmap::fromImage(GetCircleIcon(iconSize))));
-        buttonCenter->setFixedSize(buttonSize);
-        QObject::connect(buttonCenter, SIGNAL(released()), this, SIGNAL(centerReleased()));
-        layout->addWidget(buttonCenter, 1, 1);
+        //buttonCenter = new QPushButton(this);
+        //buttonCenter->setIcon(QIcon(QPixmap::fromImage(GetCircleIcon(iconSize))));
+        //buttonCenter->setFixedSize(buttonSize);
+        //QObject::connect(buttonCenter, SIGNAL(released()), this, SLOT(centerReleased()));
+        //layout->addWidget(buttonCenter, 1, 1);
     }
     this->setLayout(layout);
 }

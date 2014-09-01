@@ -36,6 +36,10 @@ QImage QFractalRenderer::getImage() {
     return image;
 }
 
+const QImage *QFractalRenderer::getImagePtr() const {
+    return &image;
+}
+
 void QFractalRenderer::setSettings(QFractalMeta F) {
     this->stop();
     this->fract = F;
@@ -117,7 +121,6 @@ void QFractalRenderer::completeDelegate() {
 void QFractalRenderer::delegate() {
     unsigned int numCores = std::thread::hardware_concurrency();
     delegateCur = 0;
-    renderStart = std::chrono::high_resolution_clock::now();
     for (unsigned int i = 0; i < numCores; i++) {
         workerThreads.push(std::thread(&QFractalRenderer::work, this));
     }
@@ -127,10 +130,11 @@ void QFractalRenderer::delegate() {
             t.join();
         workerThreads.pop();
     }
-    if (delegateCur == fract.size.height())
+    if (delegateCur == fract.size.height()) {
         emit progress(1, 1);
+    }
     emit finished();
-    emit finished(this->image);
+
 }
 
 void QFractalRenderer::work() {
@@ -138,15 +142,7 @@ void QFractalRenderer::work() {
     unsigned int* rowPtr;
     while (delegateLine(rowNum, rowPtr) && !dostop) {
         render2d_line(*fractC, (CColor*)rowPtr, rowNum);
-        if(chronoLock.try_lock()) {
-            update_progress_interval newProgressUpdate = std::chrono::duration_cast<update_progress_interval>(std::chrono::high_resolution_clock::now() - renderStart);
-            if (lastProgressUpdate.count() < newProgressUpdate.count()) {emit progress(delegateCur, fract.size.height());}
-            lastProgressUpdate = newProgressUpdate;
-            update_image_interval newImageUpdate = std::chrono::duration_cast<update_image_interval>(std::chrono::high_resolution_clock::now() - renderStart);
-            if (lastImageUpdate.count() < newImageUpdate.count()) {}
-            lastImageUpdate = newImageUpdate;
-            chronoLock.unlock();
-        }
+        emit progress(delegateCur, fract.size.height());
     }
 }
 

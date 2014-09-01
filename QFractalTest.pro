@@ -12,21 +12,20 @@ SOURCES += \
     src/main.cpp \
     src/ui.cpp \
     src/qwidget_gradient.cpp \
-    src/qwidget_2dnavigator.cpp \
     src/ui_main.cpp \
     src/ui_render.cpp \
     src/render_pixel.c \
     src/multigradient.cpp \
     src/qwidget_renderpreview.cpp \
     src/qobject_fractalrenderer.cpp \
-    src/fractal_settings.c
+    src/fractal_settings.c \
+    src/qwidget_navigator2d.cpp
 
 HEADERS  += \
     src/ui.hpp \
     src/debug.hpp \
     src/qwidget_gradient.hpp \
     src/common.hpp \
-    src/qwidget_2dnavigator.hpp \
     src/ui_main.hpp \
     src/ui_render.hpp \
     src/render_pixel.h \ 
@@ -35,7 +34,8 @@ HEADERS  += \
     src/qwidget_renderpreview.hpp \
     src/qobject_fractalrenderer.hpp \
     src/render_enumerations.h \
-    src/qfractalmeta.hpp
+    src/qfractalmeta.hpp \
+    src/qwidget_navigator2d.hpp
 
 Release:DESTDIR = release
 Release:OBJECTS_DIR = release/.obj

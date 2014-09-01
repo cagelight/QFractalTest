@@ -3,7 +3,6 @@
 
 #include "ui_main.hpp"
 #include "ui_render.hpp"
-
 #include "qobject_fractalrenderer.hpp"
 
 #include <QtWidgets>
@@ -11,6 +10,7 @@
 #include <random>
 
 FractUIManager::FractUIManager(int argc, char *argv[]) : QApplication(argc, argv) {
+
     mainWindow = new FractUIMain();
     renderWindow = new FractUIRender();
     mainWindow->show();
@@ -28,17 +28,21 @@ FractUIManager::~FractUIManager() {
 }
 
 void FractUIManager::beginCoreRender(QFractalMeta QMF) {
-    this->stopCoreRender();
-    coreRender = new QFractalRenderer(QMF);
-    QObject::connect(coreRender, SIGNAL(finished(QImage)), renderWindow, SLOT(SetView(QImage)));
-    QObject::connect(coreRender, SIGNAL(progress(int,int)), mainWindow, SLOT(updateProgress(int,int)));
+    //this->stopCoreRender();
+    if (coreRender == nullptr) {
+        coreRender = new QFractalRenderer(QMF);
+        renderWindow->SetView(coreRender->getImagePtr());
+        QObject::connect(coreRender, SIGNAL(progress(int,int)), mainWindow, SLOT(requestUpdateProgressBar(int,int)));
+        QObject::connect(coreRender, SIGNAL(progress(int,int)), renderWindow, SLOT(RequestUpdate()));
+    } else {
+        coreRender->stop();
+        coreRender->setSettings(QMF);
+    }
     coreRender->start();
 }
 
 void FractUIManager::stopCoreRender() {
     if (coreRender != nullptr) {
         coreRender->stop();
-        delete coreRender;
-        coreRender = nullptr;
     }
 }
