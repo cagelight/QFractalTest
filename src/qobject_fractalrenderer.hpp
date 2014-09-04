@@ -16,11 +16,14 @@ struct fract_settings;
 class QFractalRenderer : public QObject { //THIS CLASS __IS NOT__ THREAD SAFE OR COPYABLE. THREADS FOR INTERNAL USE ONLY.
     Q_OBJECT
 public:
-    QFractalRenderer(QFractalMeta F);
+    QFractalRenderer(QFractalMeta F, unsigned int threads = 0);
     ~QFractalRenderer();
     QImage getImage();
     const QImage *getImagePtr() const;
-    void setSettings(QFractalMeta F); //Stops an active render and then resets the state.
+    void setSettings(QFractalMeta); //Stops an active render and then resets the state. //DO NOT USE, BROKEN FOR SOME REASON I CAN'T FIGURE OUT.
+    void join();
+public:
+    static QImage renderMeta(QFractalMeta F, int threads = 0);
 signals:
     void started();
     void paused();
@@ -43,6 +46,7 @@ private:
     std::queue<std::thread> workerThreads;
     std::atomic_int delegateCur;
     std::mutex delegateLock;
+    unsigned int threads;
     ///Methods
     void setupFract();
     void resume();

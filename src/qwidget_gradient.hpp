@@ -42,6 +42,7 @@ public slots:
 signals:
     void SelectedPositionChanged(QString newPosStr);
     void HandleDoubleClicked();
+    void changed();
 };
 
 #endif // QWIDGET_GRADIENT_HPP

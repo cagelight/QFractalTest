@@ -201,14 +201,14 @@ unsigned int render2d_pixel(coord2 c, r2set rs, unsigned int maxiter) {
     return iter-1;
 }
 
-void render2d_line(fract_settings fs, CColor* rowPtr, unsigned int linePos) {
-    r2set rs = create_set(fs.pass);
+void render2d_line(const fract_settings *fs, CColor* rowPtr, unsigned int linePos) {
+    r2set rs = create_set(fs->pass);
     coord2 coords = coord2DEF;
-    float fheight = (linePos / (float)fs.Height - 0.5);
-    coords.Y = fheight * fs.Scale - fs.Offset.Y;
-    for (unsigned int c = 0; c < fs.Width; c++) {
-        coords.X = (c / (float)fs.Width - 0.5) * fs.Scale - fs.Offset.X;
-        rowPtr[c] = fs.colorbake[render2d_pixel(coords, rs, fs.Iterations)];;
+    float fheight = (linePos / (float)fs->Height - 0.5);
+    coords.Y = fheight * fs->Scale - fs->Offset.Y;
+    for (unsigned int c = 0; c < fs->Width; c++) {
+        coords.X = (c / (float)fs->Width - 0.5) * fs->Scale - fs->Offset.X;
+        rowPtr[c] = fs->colorbake[render2d_pixel(coords, rs, fs->Iterations)];;
     }
     destroy_set(rs);
 }

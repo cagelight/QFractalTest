@@ -1,6 +1,7 @@
 #include "ui_render.hpp"
 
 FractUIRender::FractUIRender() : QWidget(), viewPtr(nullptr) {
+    this->setWindowTitle("QFT Render");
     areaRender->setAlignment(Qt::AlignCenter);
     areaRender->setWidget(labelRenderView);
     cbFit->setText("Fit");

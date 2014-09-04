@@ -5,7 +5,7 @@ extern "C" {
     #include "render_pixel.h"
 }
 
-static CColor* convert_qcolorptr_ccolorptr(QColor* ptr, unsigned int size) { //DELETES THE ORIGINAL
+CColor* convert_qcolorptr_ccolorptr(QColor* ptr, unsigned int size) { //DELETES THE ORIGINAL
     CColor *newC = new CColor[size];
     for (unsigned int i = 0; i < size; i++) {
         unsigned int rgba = ptr[i].rgba();
@@ -15,7 +15,10 @@ static CColor* convert_qcolorptr_ccolorptr(QColor* ptr, unsigned int size) { //D
     return newC;
 }
 
-QFractalRenderer::QFractalRenderer(QFractalMeta F) : QObject(0), fract(F), image(F.size.width(), F.size.height(), QImage::Format_ARGB32) {
+QFractalRenderer::QFractalRenderer(QFractalMeta F, unsigned int threads) : QObject(0), fract(F), image(F.size.width(), F.size.height(), QImage::Format_ARGB32), threads(threads) {
+    if (threads == 0) {
+        this->threads = std::thread::hardware_concurrency();
+    }
     image.fill(0x00000000);
     dopause = false;
     dostop = false;
@@ -46,13 +49,24 @@ void QFractalRenderer::setSettings(QFractalMeta F) {
     this->reset();
 }
 
+void QFractalRenderer::join() {
+    this->completeDelegate();
+}
+
+QImage QFractalRenderer::renderMeta(QFractalMeta F, int threads) {
+    QFractalRenderer QFR(F, threads);
+    QFR.start();
+    QFR.join();
+    return QFR.getImage();
+}
+
 void QFractalRenderer::setupFract() {
     if (fractC != nullptr) {
         delete[] fractC->pass.funcs;
         delete[] fractC->colorbake;
         delete fractC;
     }
-    fractC = new fract_settings();
+    fractC = new fract_settings;
     fractC->Width = fract.size.width();
     fractC->Height = fract.size.height();
     fractC->Iterations = fract.iterations;
@@ -119,9 +133,8 @@ void QFractalRenderer::completeDelegate() {
 }
 
 void QFractalRenderer::delegate() {
-    unsigned int numCores = std::thread::hardware_concurrency();
     delegateCur = 0;
-    for (unsigned int i = 0; i < numCores; i++) {
+    for (unsigned int i = 0; i < this->threads; i++) {
         workerThreads.push(std::thread(&QFractalRenderer::work, this));
     }
     while (workerThreads.size() > 0) {
@@ -141,7 +154,7 @@ void QFractalRenderer::work() {
     unsigned int rowNum;
     unsigned int* rowPtr;
     while (delegateLine(rowNum, rowPtr) && !dostop) {
-        render2d_line(*fractC, (CColor*)rowPtr, rowNum);
+        render2d_line(fractC, (CColor*)rowPtr, rowNum);
         emit progress(delegateCur, fract.size.height());
     }
 }

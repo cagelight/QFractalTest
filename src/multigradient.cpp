@@ -164,6 +164,7 @@ MultiGradient::MultiGradient(const MultiGradient& other) {
 }
 
 MultiGradient& MultiGradient::operator =(const MultiGradient& other) {
+    this->t.clear();
     for(const GradientNode* v : other.GetVector()) {
         this->DirtyAdd(v->first, v->second);
     }

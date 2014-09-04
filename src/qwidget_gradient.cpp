@@ -56,6 +56,7 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
                 } else if (QME->button() == Qt::RightButton) {
                     if (selectedNode == h) this->UnsetSelectedNode();
                     gradient.Remove(h);
+                    emit changed();
                 }
                 fflag = true;
                 break;
@@ -66,6 +67,7 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
             QColor newColor = gradient.Lerp(newPos);
             const GradientNode* N = gradient.Add(newPos, newColor);
             this->SetSelectedNode(N);
+            emit changed();
         }
     }
     this->repaint();
@@ -74,6 +76,9 @@ void QGradientSlider::mousePressEvent(QMouseEvent* QME) {
 }
 
 void QGradientSlider::mouseReleaseEvent(QMouseEvent* QME) {
+    if (selectedPressed) {
+        emit changed();
+    }
     selectedPressed = false;
 }
 
@@ -95,6 +100,7 @@ void QGradientSlider::mouseDoubleClickEvent(QMouseEvent* QME) {
 void QGradientSlider::setGradient(const MultiGradient& MG) {
     this->gradient = MG;
     this->gradmm = MG.GetRange();
+    emit changed();
 }
 
 MultiGradient QGradientSlider::getGradient() const {
@@ -141,6 +147,7 @@ bool QGradientSlider::SetSelectedColor(QColor newColorQ) {
     if (selectedNode != nullptr) {
         gradient.Set(selectedNode, newColorQ);
         this->repaint();
+        emit changed();
         return true;
     } else return false;
 }
@@ -153,6 +160,7 @@ bool QGradientSlider::SetSelectedPosition(QString newPosStr) {
             f = std::min(std::max(gradmm.min, f), gradmm.max);
             gradient.Set(selectedNode, f);
             this->repaint();
+            emit changed();
             return true;
         }
     } return false;

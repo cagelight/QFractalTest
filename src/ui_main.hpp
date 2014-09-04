@@ -7,7 +7,6 @@
 #include "qfractalmeta.hpp"
 #include "qwidget_gradient.hpp"
 #include "qwidget_navigator2d.hpp"
-#include "qwidget_renderpreview.hpp"
 
 class FractUIMain : public QWidget {
     Q_OBJECT
@@ -16,17 +15,21 @@ public:
     QSize sizeHint() const;
     void closeEvent(QCloseEvent*);
 signals:
-    void startMetaEmit(QFractalMeta);
+    void coreRenderRequested(QFractalMeta);
+    void previewUpdateRequested(QFractalMeta);
     void stopPressed();
     void closing();
 public slots:
     void updateProgressBar(int, int);
     void requestUpdateProgressBar(int, int);
+    void requestPreviewUpdate();
 private slots:
-    void formalizeMeta();
+    void requestCoreRender();
     void metaOffsetDir(QNavigator2D::Direction);
-private://FractalMetaVars
+private://FractalMeta
     QPointF metaOffset = QPointF(0.0f, 0.0f);
+    float metaScale = 1.0f;
+    QFractalMeta formalizeMeta();
 private:
     //Update Notification
     bool updateRequested = false;
@@ -40,7 +43,6 @@ private:
     QLineEdit *lineEditGradientPosition = new QLineEdit(this);
     //Navbar
     QGridLayout *layoutNavbar = new QGridLayout(this);
-    QRenderPreview *renderPreview = new QRenderPreview(this);
     QNavigator2D *navigatorFractal = new QNavigator2D(this, (QNavigator2D::Options)(QNavigator2D::NAVIGATOR2_CENTER | QNavigator2D::NAVIGATOR2_ZOOM));
     //Renderbar
     QGridLayout *layoutRenderbar = new QGridLayout(this);

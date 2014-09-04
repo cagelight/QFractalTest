@@ -8,6 +8,7 @@
 
 class FractUIMain;
 class FractUIRender;
+class FractUIPreview;
 class QFractalRenderer;
 
 class FractUIManager : public QApplication {
@@ -21,6 +22,7 @@ private slots:
 private:
     FractUIMain *mainWindow;
     FractUIRender *renderWindow;
+    FractUIPreview *previewWindow;
     QFractalRenderer *coreRender = nullptr;
 };
 

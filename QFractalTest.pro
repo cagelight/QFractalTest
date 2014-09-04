@@ -19,7 +19,8 @@ SOURCES += \
     src/qwidget_renderpreview.cpp \
     src/qobject_fractalrenderer.cpp \
     src/fractal_settings.c \
-    src/qwidget_navigator2d.cpp
+    src/qwidget_navigator2d.cpp \
+    src/ui_preview.cpp
 
 HEADERS  += \
     src/ui.hpp \
@@ -35,7 +36,8 @@ HEADERS  += \
     src/qobject_fractalrenderer.hpp \
     src/render_enumerations.h \
     src/qfractalmeta.hpp \
-    src/qwidget_navigator2d.hpp
+    src/qwidget_navigator2d.hpp \
+    src/ui_preview.hpp
 
 Release:DESTDIR = release
 Release:OBJECTS_DIR = release/.obj

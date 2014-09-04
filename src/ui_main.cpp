@@ -5,6 +5,7 @@
 #include "debug.hpp"
 
 FractUIMain::FractUIMain() : QWidget() {
+    this->setWindowTitle("QFT Settings");
     //Overworld
     QObject::connect(gradientSliderFractal, SIGNAL(HandleDoubleClicked()), colorDialogGradient, SLOT(open()));
     QObject::connect(colorDialogGradient, SIGNAL(colorSelected(QColor)), gradientSliderFractal, SLOT(SetSelectedColor(QColor)));
@@ -13,13 +14,13 @@ FractUIMain::FractUIMain() : QWidget() {
     renderProgressBar->setMinimum(0);
     renderProgressBar->setMaximum(1);
     startRender->setText("Render");
-    QObject::connect(startRender, SIGNAL(pressed()), this, SLOT(formalizeMeta()));
+    QObject::connect(startRender, SIGNAL(pressed()), this, SLOT(requestCoreRender()));
     stopRender->setText("Stop");
     QObject::connect(stopRender, SIGNAL(pressed()), this, SIGNAL(stopPressed()));
     lineEditGradientPosition->setValidator(new QDoubleValidator(this));
     QObject::connect(navigatorFractal, SIGNAL(directionReleased(QNavigator2D::Direction)), this, SLOT(metaOffsetDir(QNavigator2D::Direction)));
     //Navbar
-    layoutNavbar->addWidget(renderPreview, 0, 0);
+    QObject::connect(gradientSliderFractal, SIGNAL(changed()), this, SLOT(requestPreviewUpdate()));
     layoutNavbar->addWidget(navigatorFractal, 0, 1);
     //Renderbar
     layoutRenderbar->addWidget(startRender, 0, 0);
@@ -47,24 +48,50 @@ void FractUIMain::updateProgressBar(int cur, int max) {
     this->renderProgressBar->setFormat(QString::number((cur/(float)max)*100.0f, 'f', 2)+QString("%"));
 }
 
-void FractUIMain::formalizeMeta() {
+QFractalMeta FractUIMain::formalizeMeta() {
     QSize size(512, 512);
-    float scale = 3.0f;
     unsigned int iterations = 60;
     fract_pass fp(STOP_MANDELBROT, {FUNC_MANDELBROT});
-    emit startMetaEmit(QFractalMeta(size, scale, metaOffset, iterations, gradientSliderFractal->getGradient(), fp));
+    return QFractalMeta(size, metaScale, metaOffset, iterations, gradientSliderFractal->getGradient(), fp);
+}
+
+void FractUIMain::requestCoreRender() {
+    QFractalMeta QFM = formalizeMeta();
+    emit coreRenderRequested(QFM);
+}
+
+void FractUIMain::requestPreviewUpdate() {
+    QFractalMeta QFM = formalizeMeta();
+    emit previewUpdateRequested(QFM);
 }
 
 void FractUIMain::metaOffsetDir(QNavigator2D::Direction dir) {
+    float varmount = 0.125f * metaScale;
     switch (dir) {
     case QNavigator2D::NAV_UP:
-        metaOffset.ry() += 0.125f;
+        metaOffset.ry() += varmount;
         break;
     case QNavigator2D::NAV_DOWN:
-        metaOffset.ry() -= 0.125f;
+        metaOffset.ry() -= varmount;
+        break;
+    case QNavigator2D::NAV_LEFT:
+        metaOffset.rx() += varmount;
+        break;
+    case QNavigator2D::NAV_RIGHT:
+        metaOffset.rx() -= varmount;
+        break;
+    case QNavigator2D::NAV_CENTER:
+        metaOffset = QPointF(0.0f, 0.0f);
+        metaScale = 1.0f;
+        break;
+    case QNavigator2D::NAV_INC:
+        metaScale /= 1.25f;
+        break;
+    case QNavigator2D::NAV_DEC:
+        metaScale *= 1.25f;
         break;
     }
-
+    emit previewUpdateRequested(formalizeMeta());
 }
 
 void FractUIMain::requestUpdateProgressBar(int cur, int max) {
